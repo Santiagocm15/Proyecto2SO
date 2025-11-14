@@ -39,16 +39,41 @@ public class ListaEnlazada<T> {
     public int getTamano() {
         return tamano;
     }
-    
+
     public T get(int indice) {
         if (indice < 0 || indice >= tamano) {
-            return null; 
+            return null;
         }
-        
         Nodo<T> actual = cabeza;
         for (int i = 0; i < indice; i++) {
             actual = actual.siguiente;
         }
         return actual.datos;
+    }
+
+    public boolean remover(T datos) {
+        if (estaVacia()) {
+            return false;
+        }
+
+        if (cabeza.datos.equals(datos)) {
+            cabeza = cabeza.siguiente;
+            tamano--;
+            return true;
+        }
+
+        Nodo<T> anterior = cabeza;
+        Nodo<T> actual = cabeza.siguiente;
+
+        while (actual != null) {
+            if (actual.datos.equals(datos)) {
+                anterior.siguiente = actual.siguiente;
+                tamano--;
+                return true;
+            }
+            anterior = actual;
+            actual = actual.siguiente;
+        }
+        return false;
     }
 }
