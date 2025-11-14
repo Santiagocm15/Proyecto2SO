@@ -4,7 +4,7 @@
  */
 package modelo;
 
-import estructuras.ListaEnlazada; // Importamos nuestra lista!
+import estructuras.ListaEnlazada;
 
 
 /**

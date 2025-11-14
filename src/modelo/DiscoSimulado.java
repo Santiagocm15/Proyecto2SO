@@ -10,12 +10,11 @@ package modelo;
  */
 
 public class DiscoSimulado {
-    public final Bloque[] bloques; // El disco es un gran array de bloques
+    public final Bloque[] bloques; 
     private int bloquesLibres;
 
     public DiscoSimulado(int cantidadDeBloques) {
         this.bloques = new Bloque[cantidadDeBloques];
-        // Al crear el disco, se inicializan cada uno de sus bloques
         for (int i = 0; i < cantidadDeBloques; i++) {
             this.bloques[i] = new Bloque(i);
         }
@@ -26,7 +25,6 @@ public class DiscoSimulado {
         return bloquesLibres;
     }
 
-    // Busca el primer bloque que no esté ocupado
     public Bloque buscarBloqueLibre() {
         for (Bloque bloque : bloques) {
             if (!bloque.estaOcupado) {
@@ -46,7 +44,7 @@ public class DiscoSimulado {
     public void liberarBloque(int id) {
         if (bloques[id].estaOcupado) {
             bloques[id].estaOcupado = false;
-            bloques[id].idSiguienteBloque = -1; // Reseteamos su puntero
+            bloques[id].idSiguienteBloque = -1; 
             bloquesLibres++;
         }
     }
