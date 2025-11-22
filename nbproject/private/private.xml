@@ -3,18 +3,16 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/sistemasoperativos2/SistemasOperativos2.java</file>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/estructuras/Nodo.java</file>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/estructuras/ListaEnlazada.java</file>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/modelo/Bloque.java</file>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/modelo/DiscoSimulado.java</file>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/modelo/EntradaSistemaArchivos.java</file>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/modelo/Archivo.java</file>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/modelo/Directorio.java</file>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/modelo/SistemaDeArchivos.java</file>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/vista/VentanaPrincipal.java</file>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/vista/RendererArbolArchivos.java</file>
-            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/vista/PanelDiscoVisual.java</file>
+            <file>file:/C:/Users/cams0/OneDrive/Documents/GitHub/Proyecto2SO/src/modelo/Archivo.java</file>
+            <file>file:/C:/Users/cams0/OneDrive/Documents/GitHub/Proyecto2SO/src/modelo/SistemaDeArchivos.java</file>
+            <file>file:/C:/Users/cams0/OneDrive/Documents/GitHub/Proyecto2SO/src/vista/PanelDiscoVisual.java</file>
+            <file>file:/C:/Users/cams0/OneDrive/Documents/GitHub/Proyecto2SO/src/vista/RendererArbolArchivos.java</file>
+            <file>file:/C:/Users/cams0/OneDrive/Documents/GitHub/Proyecto2SO/src/vista/VentanaPrincipal.java</file>
+            <file>file:/C:/Users/cams0/OneDrive/Documents/GitHub/Proyecto2SO/src/modelo/DiscoSimulado.java</file>
+            <file>file:/C:/Users/cams0/OneDrive/Documents/GitHub/Proyecto2SO/src/modelo/EntradaSistemaArchivos.java</file>
+            <file>file:/C:/Users/cams0/OneDrive/Documents/GitHub/Proyecto2SO/src/modelo/Directorio.java</file>
+            <file>file:/C:/Users/cams0/OneDrive/Documents/GitHub/Proyecto2SO/src/modelo/Bloque.java</file>
+            <file>file:/C:/Users/cams0/OneDrive/Documents/GitHub/Proyecto2SO/src/sistemasoperativos2/SistemasOperativos2.java</file>
         </group>
     </open-files>
 </project-private>

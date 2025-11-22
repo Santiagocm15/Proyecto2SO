@@ -11,18 +11,20 @@ package modelo;
 public class Archivo extends EntradaSistemaArchivos {
     private int tamanoEnBloques;
     private int idBloqueInicial;
+    private String propietario; 
+    private boolean publico;
 
-    public Archivo(String nombre, Directorio padre, int tamanoEnBloques, int idBloqueInicial) {
+    public Archivo(String nombre, Directorio padre, int tamanoEnBloques, int idBloqueInicial, String propietario, boolean publico) {
         super(nombre, padre);
         this.tamanoEnBloques = tamanoEnBloques;
         this.idBloqueInicial = idBloqueInicial;
+        this.propietario = propietario;
+        this.publico = publico;
     }
 
-    public int getTamanoEnBloques() {
-        return tamanoEnBloques;
-    }
-
-    public int getIdBloqueInicial() {
-        return idBloqueInicial;
-    }
+    public int getTamanoEnBloques() { return tamanoEnBloques; }
+    public int getIdBloqueInicial() { return idBloqueInicial; }
+    public String getPropietario() { return propietario; }
+    public boolean esPublico() { return publico; }
+    public void setPublico(boolean publico) { this.publico = publico; }
 }

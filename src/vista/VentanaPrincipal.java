@@ -21,6 +21,8 @@ import javax.swing.table.DefaultTableModel;
 public class VentanaPrincipal extends javax.swing.JFrame {
 
     private final SistemaDeArchivos sistema; 
+    private String usuarioActual; // nombre del usuario logueado
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaPrincipal.class.getName());
 
 
@@ -28,10 +30,41 @@ public class VentanaPrincipal extends javax.swing.JFrame {
      * Creates new form VentanaPrincipal
      */
     public VentanaPrincipal() {
-        initComponents(); 
-        this.sistema = new SistemaDeArchivos(100);        
-        actualizarTodasLasVistas();
+    initComponents(); 
+    this.sistema = new SistemaDeArchivos(100);
+    this.usuarioActual = "diego";
+
+    // Eliminar listeners previos de NetBeans
+    for (java.awt.event.ActionListener al : comboModoUsuario.getActionListeners()) {
+        comboModoUsuario.removeActionListener(al);
     }
+
+    // Configurar el combo
+    comboModoUsuario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Usuario" }));
+    comboModoUsuario.setSelectedItem("Usuario"); // inicial
+
+    // Listener real
+    comboModoUsuario.addActionListener(evt -> {
+        String seleccionado = (String) comboModoUsuario.getSelectedItem();
+        SistemaDeArchivos.ModoUsuario nuevoModo = seleccionado.equals("Administrador") ?
+                SistemaDeArchivos.ModoUsuario.ADMINISTRADOR :
+                SistemaDeArchivos.ModoUsuario.USUARIO;
+
+        sistema.setModoActual(nuevoModo);
+        actualizarTodasLasVistas();
+        System.out.println("Modo cambiado a: " + nuevoModo); // para debug
+    });
+
+    // Inicializa el modo según el combo
+    sistema.setModoActual(SistemaDeArchivos.ModoUsuario.USUARIO);
+
+    actualizarTodasLasVistas();
+}
+
+
+
+
+
     
     private void actualizarArbolDeArchivos() {
         Directorio raiz = sistema.getDirectorioRaiz();
@@ -47,18 +80,27 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }
     
     private void agregarNodosHijos(DefaultMutableTreeNode nodoPadre, Directorio dirPadre) {
-        for (int i = 0; i < dirPadre.getContenido().getTamano(); i++) {
-            EntradaSistemaArchivos entrada = dirPadre.getContenido().get(i);
-            
-            DefaultMutableTreeNode nuevoNodo = new DefaultMutableTreeNode(entrada);
-            
-            nodoPadre.add(nuevoNodo);
-            
-            if (entrada instanceof Directorio) {
-                agregarNodosHijos(nuevoNodo, (Directorio) entrada);
+    for (int i = 0; i < dirPadre.getContenido().getTamano(); i++) {
+        EntradaSistemaArchivos entrada = dirPadre.getContenido().get(i);
+
+        // FILTRADO POR MODO
+        if (sistema.getModoActual() == SistemaDeArchivos.ModoUsuario.USUARIO 
+                && entrada instanceof Archivo) {
+            Archivo archivo = (Archivo) entrada;
+            if (!archivo.getPropietario().equals(usuarioActual) && !archivo.esPublico()) {
+                continue; // saltar archivo
             }
         }
+
+        DefaultMutableTreeNode nuevoNodo = new DefaultMutableTreeNode(entrada);
+        nodoPadre.add(nuevoNodo);
+
+        if (entrada instanceof Directorio) {
+            agregarNodosHijos(nuevoNodo, (Directorio) entrada);
+        }
     }
+}
+
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -71,6 +113,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jScrollPane3 = new javax.swing.JScrollPane();
         tablaArchivos = new javax.swing.JTable();
         panelDisco = new vista.PanelDiscoVisual();
+        comboModoUsuario = new javax.swing.JComboBox<>();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
@@ -114,6 +157,8 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jSplitPane2.setRightComponent(panelDisco);
 
         jSplitPane1.setRightComponent(jSplitPane2);
+
+        comboModoUsuario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
         jMenu1.setText("Sistema");
         jMenuBar1.add(jMenu1);
@@ -163,6 +208,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void menuCrearDirectorioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCrearDirectorioActionPerformed
+        System.out.println("Modo actual: " + sistema.getModoActual());
         Directorio dirPadre = obtenerDirectorioSeleccionado();
         if (dirPadre == null) {
             JOptionPane.showMessageDialog(this,
@@ -184,32 +230,50 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_menuCrearDirectorioActionPerformed
 
     private void menuCrearArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCrearArchivoActionPerformed
+     
+        
+        
         Directorio dirPadre = obtenerDirectorioSeleccionado();
-        if (dirPadre == null) {
-            JOptionPane.showMessageDialog(this, "Por favor, seleccione un directorio para crear el archivo.", "Selección requerida", JOptionPane.WARNING_MESSAGE);
+    if (dirPadre == null) {
+        JOptionPane.showMessageDialog(this, "Por favor, seleccione un directorio para crear el archivo.", "Selección requerida", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    String nombre = JOptionPane.showInputDialog(this, "Ingrese el nombre del nuevo archivo:", "Crear Archivo", JOptionPane.PLAIN_MESSAGE);
+    if (nombre == null || nombre.trim().isEmpty()) return;
+
+    String tamanoStr = JOptionPane.showInputDialog(this, "Ingrese el tamaño en bloques:", "Crear Archivo", JOptionPane.PLAIN_MESSAGE);
+    if (tamanoStr == null || tamanoStr.trim().isEmpty()) return;
+
+    try {
+        int tamano = Integer.parseInt(tamanoStr.trim());
+        if (tamano <= 0) {
+            JOptionPane.showMessageDialog(this, "El tamaño debe ser un número positivo.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        String nombre = JOptionPane.showInputDialog(this, "Ingrese el nombre del nuevo archivo:", "Crear Archivo", JOptionPane.PLAIN_MESSAGE);
-        if (nombre == null || nombre.trim().isEmpty()) return;
+        // --- Nuevo código: elegir si el archivo será público o privado ---
+        Object[] opciones = {"Privado", "Público"};
+        int seleccion = JOptionPane.showOptionDialog(this,
+                "Seleccione el tipo de archivo:",
+                "Visibilidad del archivo",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                opciones,
+                opciones[0]);
+        
+        boolean esPublico = (seleccion == 1); // 0 = Privado, 1 = Público
+        // -------------------------------------------------------------------
 
-        String tamanoStr = JOptionPane.showInputDialog(this, "Ingrese el tamaño en bloques:", "Crear Archivo", JOptionPane.PLAIN_MESSAGE);
-        if (tamanoStr == null || tamanoStr.trim().isEmpty()) return;
-
-        try {
-            int tamano = Integer.parseInt(tamanoStr.trim());
-            if (tamano <= 0) {
-                JOptionPane.showMessageDialog(this, "El tamaño debe ser un número positivo.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (sistema.crearArchivo(nombre.trim(), tamano, dirPadre)) {
-                actualizarTodasLasVistas();
-            } else {
-                JOptionPane.showMessageDialog(this, "No se pudo crear el archivo (nombre duplicado o no hay espacio).", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "El tamaño debe ser un número válido.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
+        if (sistema.crearArchivo(nombre.trim(), tamano, dirPadre, usuarioActual, esPublico)) {
+            actualizarTodasLasVistas();
+        } else {
+            JOptionPane.showMessageDialog(this, "No se pudo crear el archivo (nombre duplicado o no hay espacio).", "Error", JOptionPane.ERROR_MESSAGE);
         }
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "El tamaño debe ser un número válido.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_menuCrearArchivoActionPerformed
 
     private void menuEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEliminarActionPerformed
@@ -282,22 +346,32 @@ public class VentanaPrincipal extends javax.swing.JFrame {
      * para encontrar todos los archivos y añadirlos a la tabla.
      */
     private void poblarTablaRecursivamente(Directorio directorio, DefaultTableModel modeloTabla) {
-        for (int i = 0; i < directorio.getContenido().getTamano(); i++) {
-            EntradaSistemaArchivos entrada = directorio.getContenido().get(i);
-            if (entrada instanceof Archivo) {
-                Archivo archivo = (Archivo) entrada;
-                Object[] fila = new Object[4];
-                fila[0] = archivo.getNombre();
-                fila[1] = archivo.getTamanoEnBloques();
-                fila[2] = archivo.getIdBloqueInicial();
-                fila[3] = archivo.getPadre().getNombre(); 
-                modeloTabla.addRow(fila);
-                
-            } else if (entrada instanceof Directorio) {
-                poblarTablaRecursivamente((Directorio) entrada, modeloTabla);
+    for (int i = 0; i < directorio.getContenido().getTamano(); i++) {
+        EntradaSistemaArchivos entrada = directorio.getContenido().get(i);
+        if (entrada instanceof Archivo) {
+            Archivo archivo = (Archivo) entrada;
+
+            // FILTRADO POR MODO
+            if (sistema.getModoActual() == SistemaDeArchivos.ModoUsuario.USUARIO) {
+                // Solo mostrar si el archivo es del usuario actual o es público
+                if (!archivo.getPropietario().equals(usuarioActual) && !archivo.esPublico()) {
+                    continue; // saltar este archivo
+                }
             }
+
+            Object[] fila = new Object[4];
+            fila[0] = archivo.getNombre();
+            fila[1] = archivo.getTamanoEnBloques();
+            fila[2] = archivo.getIdBloqueInicial();
+            fila[3] = archivo.getPadre().getNombre(); 
+            modeloTabla.addRow(fila);
+
+        } else if (entrada instanceof Directorio) {
+            poblarTablaRecursivamente((Directorio) entrada, modeloTabla);
         }
     }
+}
+
 
     /**
      * @param args the command line arguments
@@ -326,6 +400,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTree arbolArchivos;
+    private javax.swing.JComboBox<String> comboModoUsuario;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;

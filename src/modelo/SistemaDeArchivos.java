@@ -17,54 +17,77 @@ public class SistemaDeArchivos {
         this.disco = new DiscoSimulado(cantidadDeBloquesDisco);
         this.directorioRaiz = new Directorio("/", null);
     }
+    
+    public enum ModoUsuario { ADMINISTRADOR, USUARIO }
+    private ModoUsuario modoActual;
+
+    public void setModoActual(ModoUsuario modo) {
+    this.modoActual = modo;
+}
+
+public ModoUsuario getModoActual() {
+    return this.modoActual;
+}
 
     public Directorio getDirectorioRaiz() {
         return directorioRaiz;
     }
 
     public boolean crearDirectorio(String nombre, Directorio directorioPadre) {
-        if (buscarEntradaPorNombre(nombre, directorioPadre) != null) {
-            System.err.println("Error: Ya existe un archivo o directorio con el nombre '" + nombre + "'.");
-            return false;
-        }
-        Directorio nuevoDirectorio = new Directorio(nombre, directorioPadre);
-        directorioPadre.agregarEntrada(nuevoDirectorio);
-        System.out.println("Directorio '" + nombre + "' creado con éxito.");
-        return true;
+        if (modoActual == ModoUsuario.USUARIO) {
+        System.err.println("Permiso denegado: solo administradores pueden crear directorios.");
+        return false;
     }
 
-    public boolean crearArchivo(String nombre, int tamanoEnBloques, Directorio directorioPadre) {
-        if (buscarEntradaPorNombre(nombre, directorioPadre) != null) {
-            System.err.println("Error: Ya existe un archivo o directorio con el nombre '" + nombre + "'.");
-            return false;
-        }
-        if (disco.getBloquesLibres() < tamanoEnBloques) {
-            System.err.println("Error: Espacio insuficiente en el disco.");
-            return false;
-        }
-        Bloque bloqueAnterior = null;
-        int idBloqueInicial = -1;
-        for (int i = 0; i < tamanoEnBloques; i++) {
-            Bloque bloqueActual = disco.buscarBloqueLibre();
-            if (bloqueActual == null) {
-                System.err.println("Error inesperado: No se encontraron bloques libres.");
-                return false;
-            }
-            disco.ocuparBloque(bloqueActual.id);
-            if (i == 0) {
-                idBloqueInicial = bloqueActual.id;
-            } else {
-                bloqueAnterior.idSiguienteBloque = bloqueActual.id;
-            }
-            bloqueAnterior = bloqueActual;
-        }
-        Archivo nuevoArchivo = new Archivo(nombre, directorioPadre, tamanoEnBloques, idBloqueInicial);
-        directorioPadre.agregarEntrada(nuevoArchivo);
-        System.out.println("Archivo '" + nombre + "' de " + tamanoEnBloques + " bloques creado con éxito.");
-        return true;
+    if (buscarEntradaPorNombre(nombre, directorioPadre) != null) {
+        System.err.println("Error: Ya existe un archivo o directorio con el nombre '" + nombre + "'.");
+        return false;
     }
+
+    Directorio nuevoDirectorio = new Directorio(nombre, directorioPadre);
+    directorioPadre.agregarEntrada(nuevoDirectorio);
+    System.out.println("Directorio '" + nombre + "' creado con éxito.");
+    return true;
+    }
+
+    public boolean crearArchivo(String nombre, int tamanoEnBloques, Directorio directorioPadre, String propietario, boolean publico) {
+    if (modoActual == ModoUsuario.USUARIO) {
+        System.err.println("Permiso denegado: solo administradores pueden crear archivos.");
+        return false;
+    }
+
+    if (buscarEntradaPorNombre(nombre, directorioPadre) != null) {
+        System.err.println("Error: Ya existe un archivo o directorio con el nombre '" + nombre + "'.");
+        return false;
+    }
+    if (disco.getBloquesLibres() < tamanoEnBloques) {
+        System.err.println("Error: Espacio insuficiente en el disco.");
+        return false;
+    }
+
+    Bloque bloqueAnterior = null;
+    int idBloqueInicial = -1;
+    for (int i = 0; i < tamanoEnBloques; i++) {
+        Bloque bloqueActual = disco.buscarBloqueLibre();
+        if (bloqueActual == null) return false;
+        disco.ocuparBloque(bloqueActual.id);
+        if (i == 0) idBloqueInicial = bloqueActual.id;
+        else bloqueAnterior.idSiguienteBloque = bloqueActual.id;
+        bloqueAnterior = bloqueActual;
+    }
+
+    Archivo nuevoArchivo = new Archivo(nombre, directorioPadre, tamanoEnBloques, idBloqueInicial, propietario, publico);
+    directorioPadre.agregarEntrada(nuevoArchivo);
+    System.out.println("Archivo '" + nombre + "' de " + tamanoEnBloques + " bloques creado con éxito.");
+    return true;
+}
 
     public boolean eliminarArchivo(String nombre, Directorio directorioPadre) {
+        if (modoActual == ModoUsuario.USUARIO) {
+        System.err.println("Permiso denegado: solo administradores pueden eliminar archivos.");
+        return false;
+    }
+        
         EntradaSistemaArchivos entrada = buscarEntradaPorNombre(nombre, directorioPadre);
 
         if (entrada == null) {
@@ -91,6 +114,11 @@ public class SistemaDeArchivos {
     }
     
     public boolean eliminarDirectorio(String nombre, Directorio directorioPadre) {
+        if (modoActual == ModoUsuario.USUARIO) {
+        System.err.println("Permiso denegado: solo administradores pueden eliminar directorios.");
+        return false;
+    }
+        
         EntradaSistemaArchivos entrada = buscarEntradaPorNombre(nombre, directorioPadre);
         
         if (entrada == null) {
