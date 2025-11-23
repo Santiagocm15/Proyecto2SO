@@ -105,7 +105,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         tablaArchivos = new javax.swing.JTable();
         panelDisco = new vista.PanelDiscoVisual();
         jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
+        menuCargarSistema = new javax.swing.JMenu();
+        menuNuevoSistema = new javax.swing.JMenuItem();
+        menuGuardarSistema = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         menuCrearDirectorio = new javax.swing.JMenuItem();
         menuCrearArchivo = new javax.swing.JMenuItem();
@@ -152,8 +155,23 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
         jSplitPane1.setRightComponent(jSplitPane2);
 
-        jMenu1.setText("Sistema");
-        jMenuBar1.add(jMenu1);
+        menuCargarSistema.setText("Sistema");
+
+        menuNuevoSistema.setText("Nuevo");
+        menuNuevoSistema.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuNuevoSistemaActionPerformed(evt);
+            }
+        });
+        menuCargarSistema.add(menuNuevoSistema);
+
+        menuGuardarSistema.setText("Guardar Sistema");
+        menuCargarSistema.add(menuGuardarSistema);
+
+        jMenuItem3.setText("Cargar Sistema");
+        menuCargarSistema.add(jMenuItem3);
+
+        jMenuBar1.add(menuCargarSistema);
 
         jMenu2.setText("Acciones");
 
@@ -333,6 +351,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         cambiarModo();// TODO add your handling code here:
     }//GEN-LAST:event_menuCambiarModoActionPerformed
 
+    private void menuNuevoSistemaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuNuevoSistemaActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_menuNuevoSistemaActionPerformed
+
         private Directorio obtenerDirectorioSeleccionado() {
         DefaultMutableTreeNode nodoSeleccionado = (DefaultMutableTreeNode) arbolArchivos.getLastSelectedPathComponent();
 
@@ -413,11 +435,11 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTree arbolArchivos;
-    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
@@ -426,9 +448,12 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JMenuItem menuCPU;
     private javax.swing.JMenuItem menuCambiarModo;
+    private javax.swing.JMenu menuCargarSistema;
     private javax.swing.JMenuItem menuCrearArchivo;
     private javax.swing.JMenuItem menuCrearDirectorio;
     private javax.swing.JMenuItem menuEliminar;
+    private javax.swing.JMenuItem menuGuardarSistema;
+    private javax.swing.JMenuItem menuNuevoSistema;
     private vista.PanelDiscoVisual panelDisco;
     private javax.swing.JTable tablaArchivos;
     // End of variables declaration//GEN-END:variables
