@@ -1,84 +1,85 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package modelo;
 
-/**
- *
- * @author Diego Mendez
- */
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.IOException;
-import modelo.Directorio;
-import modelo.SistemaDeArchivos;
 
 public class GestorPersistencia {
 
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    // Configuración del RuntimeTypeAdapterFactory para distinguir subtipos
+    private static final RuntimeTypeAdapterFactory<EntradaSistemaArchivos> entradaFactory =
+            RuntimeTypeAdapterFactory.of(EntradaSistemaArchivos.class, "tipo")
+                    .registerSubtype(Archivo.class, "Archivo")
+                    .registerSubtype(Directorio.class, "Directorio");
+
+    // Gson configurado con el TypeAdapterFactory
+    private static final Gson gson = new GsonBuilder()
+            .registerTypeAdapterFactory(entradaFactory)
+            .setPrettyPrinting()
+            .create();
 
     // Guarda la raíz (Directorio) a un archivo JSON
     public static void guardarDirectorioRaiz(Directorio raiz, String rutaArchivo) throws IOException {
-        try (FileWriter fw = new FileWriter(rutaArchivo)) {
-            gson.toJson(raiz, fw);
-        }
+    try (FileWriter fw = new FileWriter(rutaArchivo)) {
+        // Usa el Gson configurado con RuntimeTypeAdapterFactory
+        gson.toJson(raiz, EntradaSistemaArchivos.class, fw);
     }
+}
 
     // Carga la raíz desde un JSON
     public static Directorio cargarDirectorioRaiz(String rutaArchivo) throws IOException {
-        try (FileReader fr = new FileReader(rutaArchivo)) {
-            Directorio raiz = gson.fromJson(fr, Directorio.class);
-            return raiz;
+    try (FileReader fr = new FileReader(rutaArchivo)) {
+        // Carga como EntradaSistemaArchivos para que el RuntimeTypeAdapterFactory sepa qué subclase instanciar
+        EntradaSistemaArchivos entrada = gson.fromJson(fr, EntradaSistemaArchivos.class);
+
+        // Como sabemos que la raíz es un Directorio, casteamos
+        if (!(entrada instanceof Directorio)) {
+            throw new IOException("La raíz JSON no es un Directorio válido");
         }
+        Directorio raiz = (Directorio) entrada;
+
+        // Reconstruir padres
+        reconstruirPadres(raiz);
+        return raiz;
     }
-    
+}
+
+    // Reconstruye los padres de cada entrada (importante tras cargar JSON)
     public static void reconstruirPadres(Directorio directorio) {
-    for (int i = 0; i < directorio.getContenido().getTamano(); i++) {
-        EntradaSistemaArchivos hijo = directorio.getContenido().get(i);
-        // asigna el padre (necesitarás un setter o campo accesible)
-        hijo.padre = directorio; // si 'padre' es protected, esto debe estar en mismo paquete o hacer setter
-
-        if (hijo instanceof Directorio) {
-            reconstruirPadres((Directorio) hijo);
-        }
-    }
-    
-    
-}
-    
-    public static void restaurarEstadoDisco(Directorio raiz, DiscoSimulado disco) {
-    // Primero limpia disco
-    for (int i = 0; i < disco.bloques.length; i++) {
-        disco.liberarBloque(i); // tu método ya resetea estado e idSiguienteBloque
-    }
-
-    // Recorre todos los archivos
-    recorrerYMarcar(raiz, disco);
-}
-    
-   private static void recorrerYMarcar(Directorio dir, DiscoSimulado disco) {
-    for (int i = 0; i < dir.getContenido().getTamano(); i++) {
-        EntradaSistemaArchivos e = dir.getContenido().get(i);
-
-        if (e instanceof Archivo) {
-            Archivo archivo = (Archivo) e;
-
-            int id = archivo.getIdBloqueInicial();
-            int contador = 0;
-
-            while (id != -1 && contador < archivo.getTamanoEnBloques()) {
-                disco.ocuparBloque(id);
-                id = disco.bloques[id].idSiguienteBloque;
-                contador++;
+        for (int i = 0; i < directorio.getContenido().getTamano(); i++) {
+            EntradaSistemaArchivos hijo = directorio.getContenido().get(i);
+            hijo.padre = directorio; // protected, funciona porque está en el mismo paquete
+            if (hijo instanceof Directorio) {
+                reconstruirPadres((Directorio) hijo);
             }
-        } 
-        else if (e instanceof Directorio) {
-            recorrerYMarcar((Directorio) e, disco);
         }
     }
 
-}
+    // Restaura el estado del disco según los archivos cargados
+    public static void restaurarEstadoDisco(Directorio raiz, DiscoSimulado disco) {
+        for (int i = 0; i < disco.bloques.length; i++) {
+            disco.liberarBloque(i);
+        }
+        recorrerYMarcar(raiz, disco);
+    }
+
+    private static void recorrerYMarcar(Directorio dir, DiscoSimulado disco) {
+        for (int i = 0; i < dir.getContenido().getTamano(); i++) {
+            EntradaSistemaArchivos e = dir.getContenido().get(i);
+            if (e instanceof Archivo) {
+                Archivo archivo = (Archivo) e;
+                int id = archivo.getIdBloqueInicial();
+                int contador = 0;
+                while (id != -1 && contador < archivo.getTamanoEnBloques()) {
+                    disco.ocuparBloque(id);
+                    id = disco.bloques[id].idSiguienteBloque;
+                    contador++;
+                }
+            } else if (e instanceof Directorio) {
+                recorrerYMarcar((Directorio) e, disco);
+            }
+        }
+    }
 }
