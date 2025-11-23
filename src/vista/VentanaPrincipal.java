@@ -18,6 +18,7 @@ import javax.swing.tree.TreePath;
 import modelo.SistemaDeArchivos;
 import javax.swing.table.DefaultTableModel;
 import modelo.Proceso;
+import modelo.ProcesoIO;
 
 public class VentanaPrincipal extends javax.swing.JFrame {
 
@@ -51,11 +52,11 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     actualizarTablaDeArchivos();
 
     // Debug: imprimir estados de todos los procesos
-    System.out.println("===== COLA DE PROCESOS =====");
-    for (int i = 0; i < sistema.getPlanificador().getColaListos().getTamano(); i++) {
-        Proceso p = sistema.getPlanificador().getColaListos().get(i);
-        System.out.println("Proceso: " + p.getNombreArchivo() + " | Estado: " + p.getEstadoString());
-    }
+    System.out.println("Cola actual de procesos:");
+for (int i = 0; i < sistema.getPlanificador().getColaListos().getTamano(); i++) {
+    Proceso p = sistema.getPlanificador().getColaListos().get(i);
+    System.out.println(" - " + p.getNombreArchivo() + " | Estado: " + p.getEstadoString());
+}
     System.out.println("============================");
 }).start();
         menuCambiarModo.setText("Modo: Administrador"); // texto inicial
@@ -266,12 +267,15 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         String nombre = JOptionPane.showInputDialog(this, "Ingrese el nombre del nuevo directorio:", "Crear Directorio", JOptionPane.PLAIN_MESSAGE);
         
         if (nombre != null && !nombre.trim().isEmpty()) {
-            if (sistema.crearDirectorio(nombre.trim(), dirPadre)) {
-                actualizarTodasLasVistas();
-            } else {
-                JOptionPane.showMessageDialog(this, "No se pudo crear el directorio (quizás el nombre ya existe).", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }                                           
+    ProcesoIO proceso = new ProcesoIO(
+        Proceso.Operacion.CREAR_DIRECTORIO,
+        nombre.trim(),
+        0, // tamaño no aplica
+        dirPadre
+    );
+    sistema.getPlanificador().agregarProceso(proceso);
+    actualizarTodasLasVistas();
+}                                          
     }//GEN-LAST:event_menuCrearDirectorioActionPerformed
 
     private void menuCrearArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCrearArchivoActionPerformed
@@ -279,33 +283,40 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, "No tiene permisos para crear archivos en modo Usuario.", "Acceso denegado", JOptionPane.ERROR_MESSAGE);
         return;
     }
-        
-        Directorio dirPadre = obtenerDirectorioSeleccionado();
-        if (dirPadre == null) {
-            JOptionPane.showMessageDialog(this, "Por favor, seleccione un directorio para crear el archivo.", "Selección requerida", JOptionPane.WARNING_MESSAGE);
+
+    Directorio dirPadre = obtenerDirectorioSeleccionado();
+    if (dirPadre == null) {
+        JOptionPane.showMessageDialog(this, "Por favor, seleccione un directorio para crear el archivo.", "Selección requerida", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    String nombre = JOptionPane.showInputDialog(this, "Ingrese el nombre del nuevo archivo:", "Crear Archivo", JOptionPane.PLAIN_MESSAGE);
+    if (nombre == null || nombre.trim().isEmpty()) return;
+
+    String tamanoStr = JOptionPane.showInputDialog(this, "Ingrese el tamaño en bloques:", "Crear Archivo", JOptionPane.PLAIN_MESSAGE);
+    if (tamanoStr == null || tamanoStr.trim().isEmpty()) return;
+
+    try {
+        int tamano = Integer.parseInt(tamanoStr.trim());
+        if (tamano <= 0) {
+            JOptionPane.showMessageDialog(this, "El tamaño debe ser un número positivo.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        String nombre = JOptionPane.showInputDialog(this, "Ingrese el nombre del nuevo archivo:", "Crear Archivo", JOptionPane.PLAIN_MESSAGE);
-        if (nombre == null || nombre.trim().isEmpty()) return;
+        // Crear un ProcesoIO en vez de ejecutar directamente
+        ProcesoIO proceso = new ProcesoIO(
+            Proceso.Operacion.CREAR_ARCHIVO,
+            nombre.trim(),
+            tamano,
+            dirPadre
+        );
 
-        String tamanoStr = JOptionPane.showInputDialog(this, "Ingrese el tamaño en bloques:", "Crear Archivo", JOptionPane.PLAIN_MESSAGE);
-        if (tamanoStr == null || tamanoStr.trim().isEmpty()) return;
+        sistema.getPlanificador().agregarProceso(proceso);
+        actualizarTodasLasVistas(); // Opcional: para ver que hay un proceso pendiente en la tabla de cola
 
-        try {
-            int tamano = Integer.parseInt(tamanoStr.trim());
-            if (tamano <= 0) {
-                JOptionPane.showMessageDialog(this, "El tamaño debe ser un número positivo.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (sistema.crearArchivo(nombre.trim(), tamano, dirPadre)) {
-                actualizarTodasLasVistas();
-            } else {
-                JOptionPane.showMessageDialog(this, "No se pudo crear el archivo (nombre duplicado o no hay espacio).", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "El tamaño debe ser un número válido.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
-        }
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "El tamaño debe ser un número válido.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_menuCrearArchivoActionPerformed
     
     private void actualizarVistasSegunModo() {
@@ -323,38 +334,46 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, "No tiene permisos para eliminar archivos o directorios en modo Usuario.", "Acceso denegado", JOptionPane.ERROR_MESSAGE);
         return;
     }
-        
-        TreePath rutaSeleccionada = arbolArchivos.getSelectionPath();
-        if (rutaSeleccionada == null) {
-            JOptionPane.showMessageDialog(this, "Por favor, seleccione un archivo o directorio para eliminar.", "Selección requerida", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        DefaultMutableTreeNode nodoSeleccionado = (DefaultMutableTreeNode) rutaSeleccionada.getLastPathComponent();
-        EntradaSistemaArchivos entradaAEliminar = (EntradaSistemaArchivos) nodoSeleccionado.getUserObject();
 
-        if (entradaAEliminar.getPadre() == null) {
-            JOptionPane.showMessageDialog(this, "No se puede eliminar el directorio raíz.", "Operación no permitida", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    TreePath rutaSeleccionada = arbolArchivos.getSelectionPath();
+    if (rutaSeleccionada == null) {
+        JOptionPane.showMessageDialog(this, "Por favor, seleccione un archivo o directorio para eliminar.", "Selección requerida", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        int confirmacion = JOptionPane.showConfirmDialog(this, "¿Está seguro de que desea eliminar '" + entradaAEliminar.getNombre() + "'?\nEsta acción no se puede deshacer.", "Confirmar eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-        if (confirmacion != JOptionPane.YES_OPTION) {
-            return;
-        }
+    DefaultMutableTreeNode nodoSeleccionado = (DefaultMutableTreeNode) rutaSeleccionada.getLastPathComponent();
+    EntradaSistemaArchivos entrada = (EntradaSistemaArchivos) nodoSeleccionado.getUserObject();
 
-        boolean exito;
-        if (entradaAEliminar instanceof Archivo) {
-            exito = sistema.eliminarArchivo(entradaAEliminar.getNombre(), entradaAEliminar.getPadre());
-        } else {
-            exito = sistema.eliminarDirectorio(entradaAEliminar.getNombre(), entradaAEliminar.getPadre());
-        }
+    if (entrada.getPadre() == null) {
+        JOptionPane.showMessageDialog(this, "No se puede eliminar el directorio raíz.", "Operación no permitida", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
 
-        if (exito) {
-            actualizarTodasLasVistas();
-        } else {
-            JOptionPane.showMessageDialog(this, "Ocurrió un error inesperado al eliminar la selección.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
+    int confirmacion = JOptionPane.showConfirmDialog(this,
+            "¿Está seguro de que desea eliminar '" + entrada.getNombre() + "'?\nEsta acción no se puede deshacer.",
+            "Confirmar eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+    if (confirmacion != JOptionPane.YES_OPTION) return;
+
+    // Crear un ProcesoIO para eliminar
+    ProcesoIO proceso;
+    if (entrada instanceof Archivo) {
+        proceso = new ProcesoIO(
+            Proceso.Operacion.ELIMINAR_ARCHIVO,
+            entrada.getNombre(),
+            0, // tamaño no necesario para eliminar
+            entrada.getPadre()
+        );
+    } else {
+        proceso = new ProcesoIO(
+            Proceso.Operacion.ELIMINAR_DIRECTORIO,
+            entrada.getNombre(),
+            0,
+            entrada.getPadre()
+        );
+    }
+
+    sistema.getPlanificador().agregarProceso(proceso);
+    actualizarTodasLasVistas(); // Opcional
     }//GEN-LAST:event_menuEliminarActionPerformed
 
     private void menuCambiarModoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCambiarModoActionPerformed

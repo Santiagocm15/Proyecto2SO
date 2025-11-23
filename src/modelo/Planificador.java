@@ -39,55 +39,48 @@ public class Planificador {
     }
 
     public void ejecutarSiguiente(SistemaDeArchivos sistema) {
-        if (colaListos.estaVacia()) return;
+    if (colaListos.estaVacia()) return;
 
-        enEjecucion = seleccionarProceso();
-        enEjecucion.setEstado(Proceso.Estado.EJECUTANDO);
-        System.out.println("[DEBUG] Proceso en ejecución: " + enEjecucion.getNombreArchivo());
+    enEjecucion = seleccionarProceso();
+    enEjecucion.setEstado(Proceso.Estado.EJECUTANDO);
+    System.out.println("[DEBUG] Proceso en ejecución: " + enEjecucion.getNombreArchivo());
 
-
-        // Ejecutar operación
-        boolean exito = false;
-        switch (enEjecucion.getOperacion()) {
-            case CREAR_ARCHIVO:
-                exito = sistema.crearArchivo(enEjecucion.getNombreArchivo(),
-                        enEjecucion.getTamanoBloques(),
-                        enEjecucion.getDirectorioPadre());
-                break;
-            case ELIMINAR_ARCHIVO:
-                exito = sistema.eliminarArchivo(enEjecucion.getNombreArchivo(),
-                        enEjecucion.getDirectorioPadre());
-                break;
-            case CREAR_DIRECTORIO:
-                exito = sistema.crearDirectorio(enEjecucion.getNombreArchivo(),
-                        enEjecucion.getDirectorioPadre());
-                break;
-            case ELIMINAR_DIRECTORIO:
-                exito = sistema.eliminarDirectorio(enEjecucion.getNombreArchivo(),
-                        enEjecucion.getDirectorioPadre());
-                break;
-        }
-
-        // Actualizar estado
-        if (exito) {
-            enEjecucion.setEstado(Proceso.Estado.TERMINADO);
-        } else {
-            enEjecucion.setEstado(Proceso.Estado.BLOQUEADO);
-            colaBloqueados.agregarAlFinal(enEjecucion);
-        }
-
-        colaListos.remover(enEjecucion);
-        enEjecucion = null;
-        
-        if (exito) {
-    enEjecucion.setEstado(Proceso.Estado.TERMINADO);
-    System.out.println("[DEBUG] Proceso terminado: " + enEjecucion.getNombreArchivo());
-} else {
-    enEjecucion.setEstado(Proceso.Estado.BLOQUEADO);
-    colaBloqueados.agregarAlFinal(enEjecucion);
-    System.out.println("[DEBUG] Proceso bloqueado: " + enEjecucion.getNombreArchivo());
-}
+    // Ejecutar operación
+    boolean exito = false;
+    switch (enEjecucion.getOperacion()) {
+        case CREAR_ARCHIVO:
+            exito = sistema.crearArchivo(enEjecucion.getNombreArchivo(),
+                    enEjecucion.getTamanoBloques(),
+                    enEjecucion.getDirectorioPadre());
+            break;
+        case ELIMINAR_ARCHIVO:
+            exito = sistema.eliminarArchivo(enEjecucion.getNombreArchivo(),
+                    enEjecucion.getDirectorioPadre());
+            break;
+        case CREAR_DIRECTORIO:
+            exito = sistema.crearDirectorio(enEjecucion.getNombreArchivo(),
+                    enEjecucion.getDirectorioPadre());
+            break;
+        case ELIMINAR_DIRECTORIO:
+            exito = sistema.eliminarDirectorio(enEjecucion.getNombreArchivo(),
+                    enEjecucion.getDirectorioPadre());
+            break;
     }
+
+    // Actualizar estado y mover a la cola correcta si es necesario
+    if (exito) {
+        enEjecucion.setEstado(Proceso.Estado.TERMINADO);
+        System.out.println("[DEBUG] Proceso terminado: " + enEjecucion.getNombreArchivo());
+    } else {
+        enEjecucion.setEstado(Proceso.Estado.BLOQUEADO);
+        colaBloqueados.agregarAlFinal(enEjecucion);
+        System.out.println("[DEBUG] Proceso bloqueado: " + enEjecucion.getNombreArchivo());
+    }
+
+    // Remover de la cola de listos
+    colaListos.remover(enEjecucion);
+    enEjecucion = null;
+}
 
     private Proceso seleccionarProceso() {
         // Por ahora implementamos FIFO
