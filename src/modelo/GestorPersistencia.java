@@ -10,6 +10,7 @@ package modelo;
  */
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import estructuras.ListaEnlazada;
 import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,7 +18,10 @@ import java.io.IOException;
 public class GestorPersistencia {
 
     private static final String RUTA_ARCHIVO = "sistema_archivos.json";
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+     private static final Gson gson = new GsonBuilder()
+        .registerTypeAdapter(ListaEnlazada.class, new ListaEnlazadaAdapter<>(EntradaSistemaArchivos.class))
+        .setPrettyPrinting()
+        .create();
 
     // Guardar el directorio raíz en JSON
     public static void guardarSistema(Directorio raiz) {
