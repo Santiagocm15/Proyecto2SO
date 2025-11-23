@@ -17,6 +17,7 @@ import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 import modelo.SistemaDeArchivos;
 import javax.swing.table.DefaultTableModel;
+import modelo.Proceso;
 
 public class VentanaPrincipal extends javax.swing.JFrame {
 
@@ -38,7 +39,20 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         this.sistema = new SistemaDeArchivos(100);        
         actualizarTodasLasVistas();
         new javax.swing.Timer(500, e -> {
+    // Ejecuta el siguiente proceso de la cola
+    sistema.getPlanificador().ejecutarSiguiente(sistema);
+
+    // Refresca las vistas
     panelColaProcesos1.actualizarPanel(sistema.getPlanificador());
+    panelDisco.actualizarVista(sistema.getDisco());
+    actualizarTablaDeArchivos();
+
+    // Debug: imprimir cola de procesos
+    System.out.println("Cola de listos:");
+    for (int i = 0; i < sistema.getPlanificador().getColaListos().getTamano(); i++) {
+        Proceso p = sistema.getPlanificador().getColaListos().get(i);
+        System.out.println("Proceso: " + p.getNombreArchivo() + ", Estado: " + p.getEstadoString());
+    }
 }).start();
         menuCambiarModo.setText("Modo: Administrador"); // texto inicial
 
@@ -366,6 +380,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         actualizarArbolDeArchivos();
         panelDisco.actualizarVista(sistema.getDisco());
         actualizarTablaDeArchivos();
+        panelColaProcesos1.actualizarPanel(sistema.getPlanificador());
     }
     
     private void actualizarTablaDeArchivos() {

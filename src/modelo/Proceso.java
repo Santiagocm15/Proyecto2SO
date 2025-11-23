@@ -35,9 +35,16 @@ public class Proceso {
     // Getters y setters
     public Estado getEstado() { return estado; }
     public void setEstado(Estado estado) { this.estado = estado; }
+
     public Operacion getOperacion() { return operacion; }
     public String getNombreArchivo() { return nombreArchivo; }
     public int getTamanoBloques() { return tamanoBloques; }
     public Directorio getDirectorioPadre() { return directorioPadre; }
+
+    // Método auxiliar para obtener el estado como String
+    public String getEstadoString() {
+        return estado.name(); // Esto devuelve "NUEVO", "LISTO", etc.
+    }
 }
+
 

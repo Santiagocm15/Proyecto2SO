@@ -4,6 +4,10 @@
  */
 package vista;
 
+import javax.swing.DefaultListModel;
+import modelo.Planificador;
+import modelo.Proceso;
+
 /**
  *
  * @author Diego Mendez
@@ -16,7 +20,34 @@ public class PanelColaProcesos extends javax.swing.JPanel {
     public PanelColaProcesos() {
         initComponents();
     }
+public void actualizarPanel(Planificador planificador) {
+    // Actualizar proceso en ejecución
+    Proceso ejecutando = planificador.getProcesoEnEjecucion();
+    if (ejecutando != null) {
+        lblProcesoEjecutando.setText("Proceso en ejecución: " + ejecutando.getOperacion() + " (" + ejecutando.getEstado() + ")");
+    } else {
+        lblProcesoEjecutando.setText("Proceso en ejecución: Ninguno");
+    }
 
+    // Actualizar política
+    lblPolitica.setText("Política: " + planificador.getPoliticaActual());
+
+    // Actualizar lista de listos
+    DefaultListModel<String> modeloListos = new DefaultListModel<>();
+    for (int i = 0; i < planificador.getColaListos().getTamano(); i++) {
+        Proceso p = planificador.getColaListos().get(i);
+        modeloListos.addElement(p.getOperacion() + " (" + p.getEstado() + ")");
+    }
+    listaListos.setModel(modeloListos);
+
+    // Actualizar lista de bloqueados
+    DefaultListModel<String> modeloBloqueados = new DefaultListModel<>();
+    for (int i = 0; i < planificador.getColaBloqueados().getTamano(); i++) {
+        Proceso p = planificador.getColaBloqueados().get(i);
+        modeloBloqueados.addElement(p.getOperacion() + " (" + p.getEstado() + ")");
+    }
+    listaBloqueados.setModel(modeloBloqueados);
+}
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

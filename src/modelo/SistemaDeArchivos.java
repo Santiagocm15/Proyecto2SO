@@ -26,7 +26,15 @@ public class SistemaDeArchivos {
         Proceso p = new Proceso(Proceso.Operacion.CREAR_ARCHIVO, nombre, tamanoEnBloques, directorioPadre);
         planificador.agregarProceso(p);
     }
+    
+    public void registrarProcesoES(Proceso.Operacion tipoOperacion, String nombre, int tamano, Directorio directorioPadre) {
+    Proceso p = new Proceso(tipoOperacion, nombre, tamano, directorioPadre);
+    p.setEstado(Proceso.Estado.LISTO);
+    planificador.agregarProceso(p); // usar método existente
+}
 
+
+    
     public void solicitarEliminarArchivo(String nombre, Directorio directorioPadre) {
         Proceso p = new Proceso(Proceso.Operacion.ELIMINAR_ARCHIVO, nombre, 0, directorioPadre);
         planificador.agregarProceso(p);
