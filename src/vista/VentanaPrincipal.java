@@ -34,8 +34,12 @@ public class VentanaPrincipal extends javax.swing.JFrame {
      */
     public VentanaPrincipal() {
         initComponents(); 
+        
         this.sistema = new SistemaDeArchivos(100);        
         actualizarTodasLasVistas();
+        new javax.swing.Timer(500, e -> {
+    panelColaProcesos1.actualizarPanel(sistema.getPlanificador());
+}).start();
         menuCambiarModo.setText("Modo: Administrador"); // texto inicial
 
         menuCambiarModo.addActionListener(evt -> cambiarModo());
