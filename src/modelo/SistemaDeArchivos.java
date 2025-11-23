@@ -33,6 +33,58 @@ public class SistemaDeArchivos {
     planificador.agregarProceso(p); // usar método existente
 }
 
+public boolean crearBloqueArchivo(String nombre, Directorio directorioPadre) {
+    EntradaSistemaArchivos entrada = buscarEntradaPorNombre(nombre, directorioPadre);
+    Archivo archivo;
+    if (entrada == null) {
+        // Primer bloque, crea el archivo pero sin ocupar todos los bloques
+        archivo = new Archivo(nombre, directorioPadre, 0, -1);
+        directorioPadre.agregarEntrada(archivo);
+    } else if (entrada instanceof Archivo) {
+        archivo = (Archivo) entrada;
+    } else {
+        return false; // hay directorio con ese nombre
+    }
+
+    Bloque bloque = disco.buscarBloqueLibre();
+    if (bloque == null) return false;
+
+    disco.ocuparBloque(bloque.id);
+    if (archivo.getIdBloqueInicial() == -1) archivo.setIdBloqueInicial(bloque.id);
+    else {
+        // Buscar último bloque y enlazar
+        int id = archivo.getIdBloqueInicial();
+        while (disco.bloques[id].idSiguienteBloque != -1) id = disco.bloques[id].idSiguienteBloque;
+        disco.bloques[id].idSiguienteBloque = bloque.id;
+    }
+    archivo.incrementarTamano();
+    return true;
+}
+
+public boolean eliminarBloqueArchivo(String nombre, Directorio directorioPadre) {
+    EntradaSistemaArchivos entrada = buscarEntradaPorNombre(nombre, directorioPadre);
+    if (!(entrada instanceof Archivo)) return false;
+    Archivo archivo = (Archivo) entrada;
+
+    if (archivo.getTamanoEnBloques() <= 0) return false;
+
+    int id = archivo.getIdBloqueInicial();
+    int prev = -1;
+    while (disco.bloques[id].idSiguienteBloque != -1) {
+        prev = id;
+        id = disco.bloques[id].idSiguienteBloque;
+    }
+
+    disco.liberarBloque(id);
+    if (prev != -1) disco.bloques[prev].idSiguienteBloque = -1;
+    archivo.decrementarTamano();
+
+    if (archivo.getTamanoEnBloques() == 0) {
+        directorioPadre.getContenido().remover(archivo);
+    }
+
+    return true;
+}
 
     
     public void solicitarEliminarArchivo(String nombre, Directorio directorioPadre) {

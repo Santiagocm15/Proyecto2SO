@@ -12,17 +12,22 @@ public class Archivo extends EntradaSistemaArchivos {
     private int tamanoEnBloques;
     private int idBloqueInicial;
 
-    public Archivo(String nombre, Directorio padre, int tamanoEnBloques, int idBloqueInicial) {
-        super(nombre, padre);
+    public Archivo(String nombre, Directorio dirPadre, int tamanoEnBloques, int idBloqueInicial) {
+        super(nombre, dirPadre);
         this.tamanoEnBloques = tamanoEnBloques;
         this.idBloqueInicial = idBloqueInicial;
     }
 
-    public int getTamanoEnBloques() {
-        return tamanoEnBloques;
+    public int getTamanoEnBloques() { return tamanoEnBloques; }
+    public int getIdBloqueInicial() { return idBloqueInicial; }
+    public void setIdBloqueInicial(int id) { this.idBloqueInicial = id; }
+
+    public void incrementarTamano() {
+        tamanoEnBloques++;
     }
 
-    public int getIdBloqueInicial() {
-        return idBloqueInicial;
+    public void decrementarTamano() {
+        if (tamanoEnBloques > 0) tamanoEnBloques--;
     }
 }
+

@@ -19,23 +19,31 @@ public class ProcesoIO extends Proceso {
     public int getBloquesRestantes() { return bloquesRestantes; }
 
     public void ejecutarPaso(SistemaDeArchivos sistema) {
-        if (bloquesRestantes <= 0) return;
+    if (bloquesRestantes <= 0) return;
 
-        // Simular la creación/eliminación de un bloque
-        if (getOperacion() == Operacion.CREAR_ARCHIVO) {
-            // crear un bloque (internamente en el SistemaDeArchivos)
-            // podrías tener un método interno que reserve un bloque
-        } else if (getOperacion() == Operacion.ELIMINAR_ARCHIVO) {
-            // eliminar un bloque
-        }
+    boolean exito = false;
+    if (getOperacion() == Operacion.CREAR_ARCHIVO) {
+        exito = sistema.crearBloqueArchivo(getNombreArchivo(), getDirectorioPadre());
+    } else if (getOperacion() == Operacion.ELIMINAR_ARCHIVO) {
+        exito = sistema.eliminarBloqueArchivo(getNombreArchivo(), getDirectorioPadre());
+    } else {
+        exito = true; // directorios se hacen de golpe
+    }
 
-        bloquesRestantes--; // un bloque menos por crear/eliminar
-        System.out.println("[DEBUG] " + getNombreArchivo() + " bloques restantes: " + bloquesRestantes);
-
-        // Si terminó todos los bloques, marcar como terminado
-        if (bloquesRestantes == 0) {
-            setEstado(Estado.TERMINADO);
-            System.out.println("[DEBUG] Proceso terminado: " + getNombreArchivo());
+    if (exito) {
+        bloquesRestantes--;
+        try {
+            Thread.sleep(1000); // simula 1 segundo por bloque
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
+
+    System.out.println("[DEBUG] " + getNombreArchivo() + " bloques restantes: " + bloquesRestantes);
+
+    if (bloquesRestantes == 0) {
+        setEstado(Estado.TERMINADO);
+        System.out.println("[DEBUG] Proceso terminado: " + getNombreArchivo());
+    }
+}
 }
