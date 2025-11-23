@@ -132,5 +132,22 @@ public class SistemaDeArchivos {
     public DiscoSimulado getDisco() {
         return disco;
     }
-
+    
+    public void guardarEstado() {
+    GestorPersistencia.guardarSistema(directorioRaiz);
+}
+public void cargarEstado() {
+    Directorio raizCargada = GestorPersistencia.cargarSistema();
+    if (raizCargada != null) {
+        // Reemplazamos el directorio raíz actual
+        // Esto funciona si quieres sobrescribir el estado actual
+        for (int i = directorioRaiz.getContenido().getTamano() - 1; i >= 0; i--) {
+            directorioRaiz.getContenido().remover(directorioRaiz.getContenido().get(i));
+        }
+        // Copiar los contenidos cargados al directorio raíz actual
+        for (int i = 0; i < raizCargada.getContenido().getTamano(); i++) {
+            directorioRaiz.agregarEntrada(raizCargada.getContenido().get(i));
+        }
+    }
+}
 }
