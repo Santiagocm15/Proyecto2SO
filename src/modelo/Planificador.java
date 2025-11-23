@@ -35,6 +35,7 @@ public class Planificador {
     public void agregarProceso(Proceso p) {
         p.setEstado(Proceso.Estado.LISTO);
         colaListos.agregarAlFinal(p);
+         System.out.println("[DEBUG] Proceso agregado: " + p.getNombreArchivo() + " | Estado: " + p.getEstadoString());
     }
 
     public void ejecutarSiguiente(SistemaDeArchivos sistema) {
@@ -42,6 +43,8 @@ public class Planificador {
 
         enEjecucion = seleccionarProceso();
         enEjecucion.setEstado(Proceso.Estado.EJECUTANDO);
+        System.out.println("[DEBUG] Proceso en ejecución: " + enEjecucion.getNombreArchivo());
+
 
         // Ejecutar operación
         boolean exito = false;
@@ -75,6 +78,15 @@ public class Planificador {
 
         colaListos.remover(enEjecucion);
         enEjecucion = null;
+        
+        if (exito) {
+    enEjecucion.setEstado(Proceso.Estado.TERMINADO);
+    System.out.println("[DEBUG] Proceso terminado: " + enEjecucion.getNombreArchivo());
+} else {
+    enEjecucion.setEstado(Proceso.Estado.BLOQUEADO);
+    colaBloqueados.agregarAlFinal(enEjecucion);
+    System.out.println("[DEBUG] Proceso bloqueado: " + enEjecucion.getNombreArchivo());
+}
     }
 
     private Proceso seleccionarProceso() {

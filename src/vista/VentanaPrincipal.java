@@ -38,21 +38,25 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         
         this.sistema = new SistemaDeArchivos(100);        
         actualizarTodasLasVistas();
-        new javax.swing.Timer(500, e -> {
-    // Ejecuta el siguiente proceso de la cola
-    sistema.getPlanificador().ejecutarSiguiente(sistema);
+        
+       new javax.swing.Timer(500, e -> {
+    // Ejecutar siguiente proceso de la cola
+    if (!sistema.getPlanificador().getColaListos().estaVacia()) {
+        sistema.getPlanificador().ejecutarSiguiente(sistema);
+    }
 
-    // Refresca las vistas
+    // Refrescar vistas
     panelColaProcesos1.actualizarPanel(sistema.getPlanificador());
     panelDisco.actualizarVista(sistema.getDisco());
     actualizarTablaDeArchivos();
 
-    // Debug: imprimir cola de procesos
-    System.out.println("Cola de listos:");
+    // Debug: imprimir estados de todos los procesos
+    System.out.println("===== COLA DE PROCESOS =====");
     for (int i = 0; i < sistema.getPlanificador().getColaListos().getTamano(); i++) {
         Proceso p = sistema.getPlanificador().getColaListos().get(i);
-        System.out.println("Proceso: " + p.getNombreArchivo() + ", Estado: " + p.getEstadoString());
+        System.out.println("Proceso: " + p.getNombreArchivo() + " | Estado: " + p.getEstadoString());
     }
+    System.out.println("============================");
 }).start();
         menuCambiarModo.setText("Modo: Administrador"); // texto inicial
 
