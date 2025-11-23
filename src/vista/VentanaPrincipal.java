@@ -40,7 +40,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         this.sistema = new SistemaDeArchivos(100);        
         actualizarTodasLasVistas();
         
-       new javax.swing.Timer(500, e -> {
+       new javax.swing.Timer(1000, e -> {
     // Ejecutar siguiente proceso de la cola
     if (!sistema.getPlanificador().getColaListos().estaVacia()) {
         sistema.getPlanificador().ejecutarSiguiente(sistema);

@@ -9,39 +9,33 @@ package modelo;
  * @author Diego Mendez
  */
 public class ProcesoIO extends Proceso {
+    private int bloquesRestantes;
 
-    public ProcesoIO(Operacion operacion, String nombreArchivo, int tamanoBloques, Directorio directorioPadre) {
-        super(operacion, nombreArchivo, tamanoBloques, directorioPadre);
+    public ProcesoIO(Operacion operacion, String nombreArchivo, int tamanoBloques, Directorio dirPadre) {
+        super(operacion, nombreArchivo, tamanoBloques, dirPadre);
+        this.bloquesRestantes = tamanoBloques; // Solo archivos, para directorios será 0
     }
 
-    /**
-     * Ejecuta la operación correspondiente en el sistema de archivos.
-     * @param sistema el sistema de archivos sobre el que se ejecuta
-     */
-    public void ejecutar(SistemaDeArchivos sistema) {
-        setEstado(Estado.EJECUTANDO);
+    public int getBloquesRestantes() { return bloquesRestantes; }
 
-        boolean exito = false;
+    public void ejecutarPaso(SistemaDeArchivos sistema) {
+        if (bloquesRestantes <= 0) return;
 
-        switch (getOperacion()) {
-            case CREAR_ARCHIVO:
-                exito = sistema.crearArchivo(getNombreArchivo(), getTamanoBloques(), getDirectorioPadre());
-                break;
-            case ELIMINAR_ARCHIVO:
-                exito = sistema.eliminarArchivo(getNombreArchivo(), getDirectorioPadre());
-                break;
-            case CREAR_DIRECTORIO:
-                exito = sistema.crearDirectorio(getNombreArchivo(), getDirectorioPadre());
-                break;
-            case ELIMINAR_DIRECTORIO:
-                exito = sistema.eliminarDirectorio(getNombreArchivo(), getDirectorioPadre());
-                break;
+        // Simular la creación/eliminación de un bloque
+        if (getOperacion() == Operacion.CREAR_ARCHIVO) {
+            // crear un bloque (internamente en el SistemaDeArchivos)
+            // podrías tener un método interno que reserve un bloque
+        } else if (getOperacion() == Operacion.ELIMINAR_ARCHIVO) {
+            // eliminar un bloque
         }
 
-        setEstado(Estado.TERMINADO);
+        bloquesRestantes--; // un bloque menos por crear/eliminar
+        System.out.println("[DEBUG] " + getNombreArchivo() + " bloques restantes: " + bloquesRestantes);
 
-        if (!exito) {
-            System.out.println("La operación " + getOperacion() + " sobre '" + getNombreArchivo() + "' falló.");
+        // Si terminó todos los bloques, marcar como terminado
+        if (bloquesRestantes == 0) {
+            setEstado(Estado.TERMINADO);
+            System.out.println("[DEBUG] Proceso terminado: " + getNombreArchivo());
         }
     }
 }
