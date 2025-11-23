@@ -378,49 +378,47 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
     if (result == JFileChooser.APPROVE_OPTION) {
         try {
-            GestorPersistencia.guardarDirectorioRaiz(
+            GestorPersistencia.guardarSistema(
                 sistema.getDirectorioRaiz(),
+                sistema.getDisco(),
                 chooser.getSelectedFile().getAbsolutePath()
             );
             JOptionPane.showMessageDialog(this, "Sistema guardado exitosamente.");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al guardar: " + ex.getMessage(),
                                           "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
     }//GEN-LAST:event_menuGuardarSistemaActionPerformed
 
     private void menuCargarSistemaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCargarSistemaActionPerformed
-       JFileChooser chooser = new JFileChooser();
+      JFileChooser chooser = new JFileChooser();
     chooser.setDialogTitle("Cargar Sistema de Archivos");
     int result = chooser.showOpenDialog(this);
 
     if (result == JFileChooser.APPROVE_OPTION) {
         try {
-            Directorio nuevaRaiz = GestorPersistencia.cargarDirectorioRaiz(
-                chooser.getSelectedFile().getAbsolutePath()
+            // 🔹 Carga el sistema completo (raíz + disco)
+            Directorio nuevaRaiz = GestorPersistencia.cargarSistema(
+                chooser.getSelectedFile().getAbsolutePath(),
+                sistema.getDisco()  // pasa tu DiscoSimulado existente
             );
-
-            // 🔹 Reconstruir los padres (importante para que el árbol funcione)
-            GestorPersistencia.reconstruirPadres(nuevaRaiz);
-
-            // 🔹 Crear un nuevo sistema para que tenga disco y raíz limpio
-            sistema = new SistemaDeArchivos(sistema.getDisco().bloques.length);
 
             // 🔹 Reemplazar la raíz actual por la cargada
             sistema.setDirectorioRaiz(nuevaRaiz);
 
-            // 🔹 Restaurar bloques en el DiscoSimulado
-            GestorPersistencia.restaurarEstadoDisco(nuevaRaiz, sistema.getDisco());
-
+            // 🔹 Actualizar vistas
             actualizarTodasLasVistas();
 
             JOptionPane.showMessageDialog(this, "Sistema cargado correctamente.");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al cargar: " + ex.getMessage(),
                                           "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
-    } // TODO add your handling code here:
+    }
+    
     }//GEN-LAST:event_menuCargarSistemaActionPerformed
 
         private Directorio obtenerDirectorioSeleccionado() {
