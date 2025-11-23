@@ -8,6 +8,7 @@ package vista;
  *
  * @author santi
  */
+import javax.swing.JFileChooser;
 import modelo.Archivo;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -17,10 +18,11 @@ import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 import modelo.SistemaDeArchivos;
 import javax.swing.table.DefaultTableModel;
+import modelo.GestorPersistencia;
 
 public class VentanaPrincipal extends javax.swing.JFrame {
 
-    private final SistemaDeArchivos sistema; 
+    private SistemaDeArchivos sistema; 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaPrincipal.class.getName());
     private enum Modo {
     ADMINISTRADOR,
@@ -105,10 +107,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         tablaArchivos = new javax.swing.JTable();
         panelDisco = new vista.PanelDiscoVisual();
         jMenuBar1 = new javax.swing.JMenuBar();
-        menuCargarSistema = new javax.swing.JMenu();
+        menuSistema = new javax.swing.JMenu();
         menuNuevoSistema = new javax.swing.JMenuItem();
         menuGuardarSistema = new javax.swing.JMenuItem();
-        jMenuItem3 = new javax.swing.JMenuItem();
+        menuCargarSistema = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         menuCrearDirectorio = new javax.swing.JMenuItem();
         menuCrearArchivo = new javax.swing.JMenuItem();
@@ -155,7 +157,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
         jSplitPane1.setRightComponent(jSplitPane2);
 
-        menuCargarSistema.setText("Sistema");
+        menuSistema.setText("Sistema");
 
         menuNuevoSistema.setText("Nuevo");
         menuNuevoSistema.addActionListener(new java.awt.event.ActionListener() {
@@ -163,15 +165,25 @@ public class VentanaPrincipal extends javax.swing.JFrame {
                 menuNuevoSistemaActionPerformed(evt);
             }
         });
-        menuCargarSistema.add(menuNuevoSistema);
+        menuSistema.add(menuNuevoSistema);
 
         menuGuardarSistema.setText("Guardar Sistema");
-        menuCargarSistema.add(menuGuardarSistema);
+        menuGuardarSistema.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuGuardarSistemaActionPerformed(evt);
+            }
+        });
+        menuSistema.add(menuGuardarSistema);
 
-        jMenuItem3.setText("Cargar Sistema");
-        menuCargarSistema.add(jMenuItem3);
+        menuCargarSistema.setText("Cargar Sistema");
+        menuCargarSistema.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuCargarSistemaActionPerformed(evt);
+            }
+        });
+        menuSistema.add(menuCargarSistema);
 
-        jMenuBar1.add(menuCargarSistema);
+        jMenuBar1.add(menuSistema);
 
         jMenu2.setText("Acciones");
 
@@ -352,8 +364,64 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_menuCambiarModoActionPerformed
 
     private void menuNuevoSistemaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuNuevoSistemaActionPerformed
-        // TODO add your handling code here:
+      int tamano = sistema.getDisco().bloques.length; // conservar tamaño del disco
+    sistema = new SistemaDeArchivos(tamano);        // crear nuevo sistema vacío
+
+    actualizarTodasLasVistas();
+    JOptionPane.showMessageDialog(this, "Sistema reiniciado correctamente.");  // TODO add your handling code here:
     }//GEN-LAST:event_menuNuevoSistemaActionPerformed
+
+    private void menuGuardarSistemaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuGuardarSistemaActionPerformed
+   JFileChooser chooser = new JFileChooser();
+    chooser.setDialogTitle("Guardar Sistema de Archivos");
+    int result = chooser.showSaveDialog(this);
+
+    if (result == JFileChooser.APPROVE_OPTION) {
+        try {
+            GestorPersistencia.guardarDirectorioRaiz(
+                sistema.getDirectorioRaiz(),
+                chooser.getSelectedFile().getAbsolutePath()
+            );
+            JOptionPane.showMessageDialog(this, "Sistema guardado exitosamente.");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al guardar: " + ex.getMessage(),
+                                          "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    }//GEN-LAST:event_menuGuardarSistemaActionPerformed
+
+    private void menuCargarSistemaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCargarSistemaActionPerformed
+       JFileChooser chooser = new JFileChooser();
+    chooser.setDialogTitle("Cargar Sistema de Archivos");
+    int result = chooser.showOpenDialog(this);
+
+    if (result == JFileChooser.APPROVE_OPTION) {
+        try {
+            Directorio nuevaRaiz = GestorPersistencia.cargarDirectorioRaiz(
+                chooser.getSelectedFile().getAbsolutePath()
+            );
+
+            // 🔹 Reconstruir los padres (importante para que el árbol funcione)
+            GestorPersistencia.reconstruirPadres(nuevaRaiz);
+
+            // 🔹 Crear un nuevo sistema para que tenga disco y raíz limpio
+            sistema = new SistemaDeArchivos(sistema.getDisco().bloques.length);
+
+            // 🔹 Reemplazar la raíz actual por la cargada
+            sistema.setDirectorioRaiz(nuevaRaiz);
+
+            // 🔹 Restaurar bloques en el DiscoSimulado
+            GestorPersistencia.restaurarEstadoDisco(nuevaRaiz, sistema.getDisco());
+
+            actualizarTodasLasVistas();
+
+            JOptionPane.showMessageDialog(this, "Sistema cargado correctamente.");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al cargar: " + ex.getMessage(),
+                                          "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } // TODO add your handling code here:
+    }//GEN-LAST:event_menuCargarSistemaActionPerformed
 
         private Directorio obtenerDirectorioSeleccionado() {
         DefaultMutableTreeNode nodoSeleccionado = (DefaultMutableTreeNode) arbolArchivos.getLastSelectedPathComponent();
@@ -439,7 +507,6 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
@@ -448,12 +515,13 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JMenuItem menuCPU;
     private javax.swing.JMenuItem menuCambiarModo;
-    private javax.swing.JMenu menuCargarSistema;
+    private javax.swing.JMenuItem menuCargarSistema;
     private javax.swing.JMenuItem menuCrearArchivo;
     private javax.swing.JMenuItem menuCrearDirectorio;
     private javax.swing.JMenuItem menuEliminar;
     private javax.swing.JMenuItem menuGuardarSistema;
     private javax.swing.JMenuItem menuNuevoSistema;
+    private javax.swing.JMenu menuSistema;
     private vista.PanelDiscoVisual panelDisco;
     private javax.swing.JTable tablaArchivos;
     // End of variables declaration//GEN-END:variables

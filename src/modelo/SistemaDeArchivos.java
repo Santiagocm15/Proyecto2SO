@@ -10,8 +10,8 @@ import estructuras.ListaEnlazada;
  */
 public class SistemaDeArchivos {
 
-    private final DiscoSimulado disco;
-    private final Directorio directorioRaiz;
+    private  DiscoSimulado disco;
+    private  Directorio directorioRaiz;
 
     public SistemaDeArchivos(int cantidadDeBloquesDisco) {
         this.disco = new DiscoSimulado(cantidadDeBloquesDisco);
@@ -21,7 +21,9 @@ public class SistemaDeArchivos {
     public Directorio getDirectorioRaiz() {
         return directorioRaiz;
     }
-
+public void setDirectorioRaiz(Directorio nuevaRaiz) {
+    this.directorioRaiz = nuevaRaiz;
+}
     public boolean crearDirectorio(String nombre, Directorio directorioPadre) {
         if (buscarEntradaPorNombre(nombre, directorioPadre) != null) {
             System.err.println("Error: Ya existe un archivo o directorio con el nombre '" + nombre + "'.");
@@ -132,5 +134,5 @@ public class SistemaDeArchivos {
     public DiscoSimulado getDisco() {
         return disco;
     }
-
+    
 }
