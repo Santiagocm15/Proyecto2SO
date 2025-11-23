@@ -22,7 +22,12 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
     private final SistemaDeArchivos sistema; 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaPrincipal.class.getName());
+    private enum Modo {
+    ADMINISTRADOR,
+    USUARIO
+}
 
+    private Modo modoActual = Modo.ADMINISTRADOR;
 
     /**
      * Creates new form VentanaPrincipal
@@ -31,7 +36,34 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         initComponents(); 
         this.sistema = new SistemaDeArchivos(100);        
         actualizarTodasLasVistas();
+        menuCambiarModo.setText("Modo: Administrador"); // texto inicial
+
+        menuCambiarModo.addActionListener(evt -> cambiarModo());
     }
+    
+    private void cambiarModo() {
+    Object[] opciones = {"Administrador", "Usuario"};
+    int seleccion = JOptionPane.showOptionDialog(this,
+            "Seleccione el modo de uso:",
+            "Cambiar Modo",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            opciones,
+            opciones[0]);
+
+    if (seleccion == 0) {
+        modoActual = Modo.ADMINISTRADOR;
+        menuCambiarModo.setText("Modo: Administrador");
+        JOptionPane.showMessageDialog(this, "Modo Administrador activado. Todas las operaciones están permitidas.");
+    } else if (seleccion == 1) {
+        modoActual = Modo.USUARIO;
+        menuCambiarModo.setText("Modo: Usuario");
+        JOptionPane.showMessageDialog(this, "Modo Usuario activado. Solo lectura y operaciones sobre sus propios archivos.");
+    }
+    
+    actualizarVistasSegunModo();
+}
     
     private void actualizarArbolDeArchivos() {
         Directorio raiz = sistema.getDirectorioRaiz();
@@ -63,6 +95,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPopupMenu1 = new javax.swing.JPopupMenu();
         jSplitPane1 = new javax.swing.JSplitPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         arbolArchivos = new javax.swing.JTree();
@@ -77,6 +110,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         menuCrearDirectorio = new javax.swing.JMenuItem();
         menuCrearArchivo = new javax.swing.JMenuItem();
         menuEliminar = new javax.swing.JMenuItem();
+        jMenu3 = new javax.swing.JMenu();
+        menuCambiarModo = new javax.swing.JMenuItem();
+        jMenu4 = new javax.swing.JMenu();
+        menuCPU = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -104,11 +141,11 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         panelDisco.setLayout(panelDiscoLayout);
         panelDiscoLayout.setHorizontalGroup(
             panelDiscoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 379, Short.MAX_VALUE)
+            .addGap(0, 608, Short.MAX_VALUE)
         );
         panelDiscoLayout.setVerticalGroup(
             panelDiscoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 256, Short.MAX_VALUE)
+            .addGap(0, 488, Short.MAX_VALUE)
         );
 
         jSplitPane2.setRightComponent(panelDisco);
@@ -146,23 +183,49 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
         jMenuBar1.add(jMenu2);
 
+        jMenu3.setText("Modo");
+
+        menuCambiarModo.setText("jMenuItem1");
+        menuCambiarModo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuCambiarModoActionPerformed(evt);
+            }
+        });
+        jMenu3.add(menuCambiarModo);
+
+        jMenuBar1.add(jMenu3);
+
+        jMenu4.setText("CPU");
+
+        menuCPU.setText("jMenuItem1");
+        jMenu4.add(menuCPU);
+
+        jMenuBar1.add(jMenu4);
+
         setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jSplitPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 629, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 151, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 277, Short.MAX_VALUE)
+            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 509, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void menuCrearDirectorioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCrearDirectorioActionPerformed
+        if (modoActual == Modo.USUARIO) {
+        JOptionPane.showMessageDialog(this, "No tiene permisos para crear directorios en modo Usuario.", "Acceso denegado", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+        
         Directorio dirPadre = obtenerDirectorioSeleccionado();
         if (dirPadre == null) {
             JOptionPane.showMessageDialog(this,
@@ -184,6 +247,11 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_menuCrearDirectorioActionPerformed
 
     private void menuCrearArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCrearArchivoActionPerformed
+        if (modoActual == Modo.USUARIO) {
+        JOptionPane.showMessageDialog(this, "No tiene permisos para crear archivos en modo Usuario.", "Acceso denegado", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+        
         Directorio dirPadre = obtenerDirectorioSeleccionado();
         if (dirPadre == null) {
             JOptionPane.showMessageDialog(this, "Por favor, seleccione un directorio para crear el archivo.", "Selección requerida", JOptionPane.WARNING_MESSAGE);
@@ -211,8 +279,23 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "El tamaño debe ser un número válido.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_menuCrearArchivoActionPerformed
+    
+    private void actualizarVistasSegunModo() {
+    boolean admin = modoActual == Modo.ADMINISTRADOR;
 
+    menuCrearArchivo.setEnabled(admin);
+    menuCrearDirectorio.setEnabled(admin);
+    menuEliminar.setEnabled(admin);
+
+    // Podrías cambiar colores o iconos del árbol para mostrar solo lectura
+}
+    
     private void menuEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEliminarActionPerformed
+        if (modoActual == Modo.USUARIO) {
+        JOptionPane.showMessageDialog(this, "No tiene permisos para eliminar archivos o directorios en modo Usuario.", "Acceso denegado", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+        
         TreePath rutaSeleccionada = arbolArchivos.getSelectionPath();
         if (rutaSeleccionada == null) {
             JOptionPane.showMessageDialog(this, "Por favor, seleccione un archivo o directorio para eliminar.", "Selección requerida", JOptionPane.WARNING_MESSAGE);
@@ -245,6 +328,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Ocurrió un error inesperado al eliminar la selección.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_menuEliminarActionPerformed
+
+    private void menuCambiarModoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCambiarModoActionPerformed
+        cambiarModo();// TODO add your handling code here:
+    }//GEN-LAST:event_menuCambiarModoActionPerformed
 
         private Directorio obtenerDirectorioSeleccionado() {
         DefaultMutableTreeNode nodoSeleccionado = (DefaultMutableTreeNode) arbolArchivos.getLastSelectedPathComponent();
@@ -328,12 +415,17 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private javax.swing.JTree arbolArchivos;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
+    private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
+    private javax.swing.JMenuItem menuCPU;
+    private javax.swing.JMenuItem menuCambiarModo;
     private javax.swing.JMenuItem menuCrearArchivo;
     private javax.swing.JMenuItem menuCrearDirectorio;
     private javax.swing.JMenuItem menuEliminar;
