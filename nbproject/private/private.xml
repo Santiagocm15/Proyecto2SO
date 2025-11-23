@@ -15,6 +15,15 @@
             <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/vista/VentanaPrincipal.java</file>
             <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/vista/RendererArbolArchivos.java</file>
             <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/vista/PanelDiscoVisual.java</file>
+            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/planificacion/EstadoProceso.java</file>
+            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/planificacion/TipoSolicitud.java</file>
+            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/planificacion/SolicitudES.java</file>
+            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/planificacion/Proceso.java</file>
+            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/planificacion/GestorDeProcesos.java</file>
+            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/planificacion/PoliticaPlanificacion.java</file>
+            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/planificacion/PoliticaFIFO.java</file>
+            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/planificacion/PoliticaSSTF.java</file>
+            <file>file:/C:/Users/santi/OneDrive/Escritorio/SistemasOperativos2/src/planificacion/DireccionSCAN.java</file>
         </group>
     </open-files>
 </project-private>

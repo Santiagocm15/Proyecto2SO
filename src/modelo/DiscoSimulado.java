@@ -8,6 +8,8 @@ package modelo;
  *
  * @author santi
  */
+import estructuras.ListaEnlazada;
+import planificacion.Proceso;
 
 public class DiscoSimulado {
     public final Bloque[] bloques; 
@@ -32,6 +34,24 @@ public class DiscoSimulado {
             }
         }
         return null;
+    }
+    
+    public Bloque buscarBloqueLibreParaPlanificacion(ListaEnlazada<Proceso> colaProcesos) {
+        for (Bloque bloque : bloques) {
+            if (!bloque.estaOcupado) {
+                boolean reservado = false;
+                for (int i = 0; i < colaProcesos.getTamano(); i++) {
+                    if (colaProcesos.get(i).getBloqueObjetivo() == bloque.id) {
+                        reservado = true;
+                        break;
+                    }
+                }
+                if (!reservado) {
+                    return bloque; 
+                }
+            }
+        }
+        return null; 
     }
 
     public void ocuparBloque(int id) {

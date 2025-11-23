@@ -17,10 +17,25 @@ import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 import modelo.SistemaDeArchivos;
 import javax.swing.table.DefaultTableModel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.Timer;
+import planificacion.GestorDeProcesos;
+import planificacion.Proceso;
+import planificacion.SolicitudES;
+import planificacion.TipoSolicitud;
+import estructuras.ListaEnlazada;
+import planificacion.PoliticaFIFO;
+import planificacion.PoliticaSSTF;
+import planificacion.PoliticaSCAN;
+import planificacion.PoliticaCSCAN; 
 
 public class VentanaPrincipal extends javax.swing.JFrame {
 
     private final SistemaDeArchivos sistema; 
+    private final GestorDeProcesos gestorProcesos;
+    private final Timer planificadorTimer;
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaPrincipal.class.getName());
     private enum Modo {
     ADMINISTRADOR,
@@ -34,9 +49,19 @@ public class VentanaPrincipal extends javax.swing.JFrame {
      */
     public VentanaPrincipal() {
         initComponents(); 
-        this.sistema = new SistemaDeArchivos(100);        
-        actualizarTodasLasVistas();
-        menuCambiarModo.setText("Modo: Administrador"); // texto inicial
+        this.sistema = new SistemaDeArchivos(100);  
+        this.gestorProcesos = new GestorDeProcesos(this.sistema);
+        this.planificadorTimer = new Timer(2000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gestorProcesos.procesarSiguienteSolicitud();
+                actualizarTodasLasVistas();
+            }
+        });
+        planificadorTimer.start(); 
+        
+        actualizarTodasLasVistas();        
+        menuCambiarModo.setText("Modo: Administrador"); 
 
         menuCambiarModo.addActionListener(evt -> cambiarModo());
     }
@@ -101,9 +126,16 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         arbolArchivos = new javax.swing.JTree();
         jSplitPane2 = new javax.swing.JSplitPane();
         jScrollPane2 = new javax.swing.JScrollPane();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel1 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         tablaArchivos = new javax.swing.JTable();
+        jPanel2 = new javax.swing.JPanel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        tablaProcesos = new javax.swing.JTable();
         panelDisco = new vista.PanelDiscoVisual();
+        jLabel1 = new javax.swing.JLabel();
+        selectorPolitica = new javax.swing.JComboBox<>();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
@@ -133,7 +165,57 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         ));
         jScrollPane3.setViewportView(tablaArchivos);
 
-        jScrollPane2.setViewportView(jScrollPane3);
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 606, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 594, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 483, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 471, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+        );
+
+        jTabbedPane1.addTab("Asignación de archivos", jPanel1);
+
+        tablaProcesos.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "ID", "Solicitud", "Estado", "Detalles"
+            }
+        ));
+        jScrollPane4.setViewportView(tablaProcesos);
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 606, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 483, Short.MAX_VALUE)
+        );
+
+        jTabbedPane1.addTab("Cola de procesos", jPanel2);
+        jPanel2.getAccessibleContext().setAccessibleName("");
+
+        jScrollPane2.setViewportView(jTabbedPane1);
 
         jSplitPane2.setTopComponent(jScrollPane2);
 
@@ -151,6 +233,15 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jSplitPane2.setRightComponent(panelDisco);
 
         jSplitPane1.setRightComponent(jSplitPane2);
+
+        jLabel1.setText("Política de Planificación:");
+
+        selectorPolitica.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "FIFO", "SSTF", "SCAN", "C-SCAN" }));
+        selectorPolitica.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                selectorPoliticaActionPerformed(evt);
+            }
+        });
 
         jMenu1.setText("Sistema");
         jMenuBar1.add(jMenu1);
@@ -210,11 +301,21 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jSplitPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 629, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 151, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(selectorPolitica, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 12, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 509, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(selectorPolitica, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -239,7 +340,8 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         
         if (nombre != null && !nombre.trim().isEmpty()) {
             if (sistema.crearDirectorio(nombre.trim(), dirPadre)) {
-                actualizarTodasLasVistas();
+                SolicitudES solicitud = new SolicitudES(TipoSolicitud.CREAR_DIRECTORIO, nombre.trim(), dirPadre);
+                gestorProcesos.registrarNuevaSolicitud(solicitud);
             } else {
                 JOptionPane.showMessageDialog(this, "No se pudo crear el directorio (quizás el nombre ya existe).", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -270,11 +372,8 @@ public class VentanaPrincipal extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "El tamaño debe ser un número positivo.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            if (sistema.crearArchivo(nombre.trim(), tamano, dirPadre)) {
-                actualizarTodasLasVistas();
-            } else {
-                JOptionPane.showMessageDialog(this, "No se pudo crear el archivo (nombre duplicado o no hay espacio).", "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            SolicitudES solicitud = new SolicitudES(TipoSolicitud.CREAR_ARCHIVO, nombre.trim(), dirPadre, tamano);
+            gestorProcesos.registrarNuevaSolicitud(solicitud);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "El tamaño debe ser un número válido.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
         }
@@ -289,6 +388,29 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
     // Podrías cambiar colores o iconos del árbol para mostrar solo lectura
 }
+    
+    private void actualizarTablaProcesos() {
+        DefaultTableModel modeloTabla = (DefaultTableModel) tablaProcesos.getModel();
+        modeloTabla.setRowCount(0);
+        ListaEnlazada<Proceso> cola = gestorProcesos.getColaDeES();
+        for (int i = 0; i < cola.getTamano(); i++) {
+            Proceso proceso = cola.get(i);
+            if (proceso == null) continue; 
+            SolicitudES solicitud = proceso.getSolicitud();
+            String detalles = solicitud.getNombre();
+                        if (solicitud.getTipo() == TipoSolicitud.CREAR_ARCHIVO) {
+                detalles += " (" + solicitud.getTamanoEnBloques() + " bloques)";
+            }
+
+            Object[] fila = new Object[]{
+                proceso.getId(),
+                solicitud.getTipo(),
+                proceso.getEstado(),
+                detalles
+            };
+            modeloTabla.addRow(fila);
+        }
+    }
     
     private void menuEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEliminarActionPerformed
         if (modoActual == Modo.USUARIO) {
@@ -333,6 +455,29 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         cambiarModo();// TODO add your handling code here:
     }//GEN-LAST:event_menuCambiarModoActionPerformed
 
+    private void selectorPoliticaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectorPoliticaActionPerformed
+    String seleccion = (String) selectorPolitica.getSelectedItem();
+    if (seleccion == null) return;
+
+    switch (seleccion) {
+        case "FIFO":
+            gestorProcesos.setPolitica(new PoliticaFIFO());
+            break;
+        case "SSTF":
+            gestorProcesos.setPolitica(new PoliticaSSTF());
+            break;
+        case "SCAN":
+            gestorProcesos.setPolitica(new PoliticaSCAN());
+            break;
+        case "C-SCAN":
+            gestorProcesos.setPolitica(new PoliticaCSCAN());
+            break;
+        default:
+            gestorProcesos.setPolitica(new PoliticaFIFO());
+            break;
+    }
+    }//GEN-LAST:event_selectorPoliticaActionPerformed
+
         private Directorio obtenerDirectorioSeleccionado() {
         DefaultMutableTreeNode nodoSeleccionado = (DefaultMutableTreeNode) arbolArchivos.getLastSelectedPathComponent();
 
@@ -356,6 +501,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         actualizarArbolDeArchivos();
         panelDisco.actualizarVista(sistema.getDisco());
         actualizarTablaDeArchivos();
+        actualizarTablaProcesos();
     }
     
     private void actualizarTablaDeArchivos() {
@@ -413,24 +559,31 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTree arbolArchivos;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JMenuItem menuCPU;
     private javax.swing.JMenuItem menuCambiarModo;
     private javax.swing.JMenuItem menuCrearArchivo;
     private javax.swing.JMenuItem menuCrearDirectorio;
     private javax.swing.JMenuItem menuEliminar;
     private vista.PanelDiscoVisual panelDisco;
+    private javax.swing.JComboBox<String> selectorPolitica;
     private javax.swing.JTable tablaArchivos;
+    private javax.swing.JTable tablaProcesos;
     // End of variables declaration//GEN-END:variables
 }
 
