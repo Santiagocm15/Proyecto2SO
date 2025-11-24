@@ -562,16 +562,19 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     int result = chooser.showOpenDialog(this);
     if (result == JFileChooser.APPROVE_OPTION) {
         try {
-            // 🔹 Carga el sistema completo (raíz + disco)
+            // 🔹 Cargar sistema completo (raíz + disco), devuelve la nueva raíz
             Directorio nuevaRaiz = GestorPersistencia.cargarSistema(
                 chooser.getSelectedFile().getAbsolutePath(),
-                sistema.getDisco()  // pasa tu DiscoSimulado existente
+                sistema.getDisco()  // disco actual donde se reconstruyen los bloques
             );
 
             // 🔹 Reemplazar la raíz actual por la cargada
             sistema.setDirectorioRaiz(nuevaRaiz);
 
-            // 🔹 Actualizar vistas
+            // 🔹 RECREAR o RECONFIGURAR gestorProcesos para el sistema recién cargado
+            gestorProcesos = new GestorDeProcesos(this.sistema);
+
+            // 🔹 Actualizar vistas (árbol, tabla, disco)
             actualizarTodasLasVistas();
 
             JOptionPane.showMessageDialog(this, "Sistema cargado correctamente.");
