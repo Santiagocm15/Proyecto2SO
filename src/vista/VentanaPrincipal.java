@@ -344,30 +344,34 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void menuCrearDirectorioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCrearDirectorioActionPerformed
-        if (modoActual == Modo.USUARIO) {
+       if (modoActual == Modo.USUARIO) {
         JOptionPane.showMessageDialog(this, "No tiene permisos para crear directorios en modo Usuario.", "Acceso denegado", JOptionPane.ERROR_MESSAGE);
         return;
     }
-        
-        Directorio dirPadre = obtenerDirectorioSeleccionado();
-        if (dirPadre == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Por favor, seleccione un directorio en el árbol donde crear el nuevo directorio.",
-                    "Selección requerida",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    
+    Directorio dirPadre = obtenerDirectorioSeleccionado();
+    if (dirPadre == null) {
+        JOptionPane.showMessageDialog(this,
+                "Por favor, seleccione un directorio en el árbol donde crear el nuevo directorio.",
+                "Selección requerida",
+                JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        String nombre = JOptionPane.showInputDialog(this, "Ingrese el nombre del nuevo directorio:", "Crear Directorio", JOptionPane.PLAIN_MESSAGE);
-        
-        if (nombre != null && !nombre.trim().isEmpty()) {
-            if (sistema.crearDirectorio(nombre.trim(), dirPadre)) {
+    String nombre = JOptionPane.showInputDialog(this, "Ingrese el nombre del nuevo directorio:", "Crear Directorio", JOptionPane.PLAIN_MESSAGE);
+    
+    if (nombre != null && !nombre.trim().isEmpty()) {
+        if (sistema.crearDirectorio(nombre.trim(), dirPadre)) {
+            // Registrar en el gestor de procesos si existe
+            if (gestorProcesos != null) {
                 SolicitudES solicitud = new SolicitudES(TipoSolicitud.CREAR_DIRECTORIO, nombre.trim(), dirPadre);
                 gestorProcesos.registrarNuevaSolicitud(solicitud);
-            } else {
-                JOptionPane.showMessageDialog(this, "No se pudo crear el directorio (quizás el nombre ya existe).", "Error", JOptionPane.ERROR_MESSAGE);
             }
-        }                                           
+            actualizarTodasLasVistas(); // mantener tu actualización de vistas
+        } else {
+            JOptionPane.showMessageDialog(this, "No se pudo crear el directorio (quizás el nombre ya existe).", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }                                               
     }//GEN-LAST:event_menuCrearDirectorioActionPerformed
 
     private void menuCrearArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCrearArchivoActionPerformed
