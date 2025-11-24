@@ -35,8 +35,8 @@ import modelo.GestorPersistencia;
 public class VentanaPrincipal extends javax.swing.JFrame {
 
     private SistemaDeArchivos sistema; 
-    private final GestorDeProcesos gestorProcesos;
-    private final Timer planificadorTimer;
+    private GestorDeProcesos gestorProcesos;
+    private Timer planificadorTimer;
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaPrincipal.class.getName());
     private enum Modo {
@@ -258,12 +258,27 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         menuSistema.setText("Sistema");
 
         menuNuevoSistema.setText("Nuevo");
+        menuNuevoSistema.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuNuevoSistemaActionPerformed(evt);
+            }
+        });
         menuSistema.add(menuNuevoSistema);
 
         menuGuardarSistema.setText("Guardar Sistema");
+        menuGuardarSistema.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuGuardarSistemaActionPerformed(evt);
+            }
+        });
         menuSistema.add(menuGuardarSistema);
 
-        menuCargarSistema.setText("CargarSistema");
+        menuCargarSistema.setText("Cargar Sistema");
+        menuCargarSistema.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuCargarSistemaActionPerformed(evt);
+            }
+        });
         menuSistema.add(menuCargarSistema);
 
         jMenuBar1.add(menuSistema);
@@ -503,6 +518,70 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             break;
     }
     }//GEN-LAST:event_selectorPoliticaActionPerformed
+
+    private void menuNuevoSistemaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuNuevoSistemaActionPerformed
+     int tamano = sistema.getDisco().bloques.length; // conservar tamaño del disco
+    sistema = new SistemaDeArchivos(tamano);        // crear nuevo sistema vacío
+
+    // recrear o reconfigurar gestor de procesos para el nuevo sistema
+    if (gestorProcesos == null) {
+        gestorProcesos = new GestorDeProcesos(this.sistema);
+    } else {
+        gestorProcesos = new GestorDeProcesos(this.sistema); // o gestorProcesos.setSistema(this.sistema);
+    }
+
+    actualizarTodasLasVistas();
+    JOptionPane.showMessageDialog(this, "Sistema reiniciado correctamente.");
+    
+    }//GEN-LAST:event_menuNuevoSistemaActionPerformed
+
+    private void menuGuardarSistemaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuGuardarSistemaActionPerformed
+      JFileChooser chooser = new JFileChooser();
+    chooser.setDialogTitle("Guardar Sistema de Archivos");
+    int result = chooser.showSaveDialog(this);
+
+    if (result == JFileChooser.APPROVE_OPTION) {
+        try {
+            GestorPersistencia.guardarSistema(
+                sistema.getDirectorioRaiz(),
+                sistema.getDisco(),
+                chooser.getSelectedFile().getAbsolutePath()
+            );
+            JOptionPane.showMessageDialog(this, "Sistema guardado exitosamente.");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al guardar: " + ex.getMessage(),
+                                          "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+    }  // TODO add your handling code here:
+    }//GEN-LAST:event_menuGuardarSistemaActionPerformed
+
+    private void menuCargarSistemaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCargarSistemaActionPerformed
+        JFileChooser chooser = new JFileChooser();
+    chooser.setDialogTitle("Cargar Sistema de Archivos");
+    int result = chooser.showOpenDialog(this);
+    if (result == JFileChooser.APPROVE_OPTION) {
+        try {
+            // 🔹 Carga el sistema completo (raíz + disco)
+            Directorio nuevaRaiz = GestorPersistencia.cargarSistema(
+                chooser.getSelectedFile().getAbsolutePath(),
+                sistema.getDisco()  // pasa tu DiscoSimulado existente
+            );
+
+            // 🔹 Reemplazar la raíz actual por la cargada
+            sistema.setDirectorioRaiz(nuevaRaiz);
+
+            // 🔹 Actualizar vistas
+            actualizarTodasLasVistas();
+
+            JOptionPane.showMessageDialog(this, "Sistema cargado correctamente.");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al cargar: " + ex.getMessage(),
+                                          "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+    }
+    }//GEN-LAST:event_menuCargarSistemaActionPerformed
 
         private Directorio obtenerDirectorioSeleccionado() {
         DefaultMutableTreeNode nodoSeleccionado = (DefaultMutableTreeNode) arbolArchivos.getLastSelectedPathComponent();

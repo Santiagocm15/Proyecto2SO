@@ -19,16 +19,25 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Nuevo"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="menuNuevoSistemaActionPerformed"/>
+              </Events>
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="menuGuardarSistema">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Guardar Sistema"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="menuGuardarSistemaActionPerformed"/>
+              </Events>
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="menuCargarSistema">
               <Properties>
-                <Property name="text" type="java.lang.String" value="CargarSistema"/>
+                <Property name="text" type="java.lang.String" value="Cargar Sistema"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="menuCargarSistemaActionPerformed"/>
+              </Events>
             </MenuItem>
           </SubComponents>
         </Menu>
