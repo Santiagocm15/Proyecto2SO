@@ -50,23 +50,30 @@ public class VentanaPrincipal extends javax.swing.JFrame {
      * Creates new form VentanaPrincipal
      */
     public VentanaPrincipal() {
-        initComponents(); 
-        this.sistema = new SistemaDeArchivos(100);  
-        this.gestorProcesos = new GestorDeProcesos(this.sistema);
-        this.planificadorTimer = new Timer(2000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                gestorProcesos.procesarSiguienteSolicitud();
-                actualizarTodasLasVistas();
-            }
-        });
-        planificadorTimer.start(); 
-        
-        actualizarTodasLasVistas();        
-        menuCambiarModo.setText("Modo: Administrador"); 
+    initComponents();
 
-        menuCambiarModo.addActionListener(evt -> cambiarModo());
-    }
+    // 1️⃣ Inicializar tu SistemaDeArchivos (compatible con tu persistencia)
+    this.sistema = new SistemaDeArchivos(100);
+
+    // 2️⃣ Inicializar el gestor de procesos del otro proyecto
+    this.gestorProcesos = new GestorDeProcesos(this.sistema);
+
+    // 3️⃣ Configurar Timer para la planificación de procesos automática
+    this.planificadorTimer = new Timer(2000, e -> {
+        if (gestorProcesos != null) {
+            gestorProcesos.procesarSiguienteSolicitud();
+        }
+        actualizarTodasLasVistas(); // actualizar UI después de cada ciclo
+    });
+    planificadorTimer.start();
+
+    // 4️⃣ Actualizar todas las vistas al inicio
+    actualizarTodasLasVistas();
+
+    // 5️⃣ Configurar menú de cambio de modo
+    menuCambiarModo.setText("Modo: Administrador");
+    menuCambiarModo.addActionListener(evt -> cambiarModo());
+}
     
     private void cambiarModo() {
     Object[] opciones = {"Administrador", "Usuario"};
