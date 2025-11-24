@@ -8,15 +8,6 @@ package vista;
  *
  * @author santi
  */
-import modelo.Archivo;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import modelo.Directorio;
-import modelo.EntradaSistemaArchivos;
-import javax.swing.JOptionPane;
-import javax.swing.tree.TreePath;
-import modelo.SistemaDeArchivos;
-import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Timer;
@@ -29,6 +20,17 @@ import planificacion.PoliticaFIFO;
 import planificacion.PoliticaSSTF;
 import planificacion.PoliticaSCAN;
 import planificacion.PoliticaCSCAN; 
+import javax.swing.JFileChooser;
+import modelo.Archivo;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import modelo.Directorio;
+import modelo.EntradaSistemaArchivos;
+import javax.swing.JOptionPane;
+import javax.swing.tree.TreePath;
+import modelo.SistemaDeArchivos;
+import javax.swing.table.DefaultTableModel;
+import modelo.GestorPersistencia;
 
 public class VentanaPrincipal extends javax.swing.JFrame {
 
