@@ -137,7 +137,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         selectorPolitica = new javax.swing.JComboBox<>();
         jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
+        menuSistema = new javax.swing.JMenu();
+        menuNuevoSistema = new javax.swing.JMenuItem();
+        menuGuardarSistema = new javax.swing.JMenuItem();
+        menuCargarSistema = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         menuCrearDirectorio = new javax.swing.JMenuItem();
         menuCrearArchivo = new javax.swing.JMenuItem();
@@ -243,8 +246,18 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             }
         });
 
-        jMenu1.setText("Sistema");
-        jMenuBar1.add(jMenu1);
+        menuSistema.setText("Sistema");
+
+        menuNuevoSistema.setText("Nuevo");
+        menuSistema.add(menuNuevoSistema);
+
+        menuGuardarSistema.setText("Guardar Sistema");
+        menuSistema.add(menuGuardarSistema);
+
+        menuCargarSistema.setText("CargarSistema");
+        menuSistema.add(menuCargarSistema);
+
+        jMenuBar1.add(menuSistema);
 
         jMenu2.setText("Acciones");
 
@@ -560,7 +573,6 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTree arbolArchivos;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
@@ -577,9 +589,13 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JMenuItem menuCPU;
     private javax.swing.JMenuItem menuCambiarModo;
+    private javax.swing.JMenuItem menuCargarSistema;
     private javax.swing.JMenuItem menuCrearArchivo;
     private javax.swing.JMenuItem menuCrearDirectorio;
     private javax.swing.JMenuItem menuEliminar;
+    private javax.swing.JMenuItem menuGuardarSistema;
+    private javax.swing.JMenuItem menuNuevoSistema;
+    private javax.swing.JMenu menuSistema;
     private vista.PanelDiscoVisual panelDisco;
     private javax.swing.JComboBox<String> selectorPolitica;
     private javax.swing.JTable tablaArchivos;
