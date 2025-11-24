@@ -35,8 +35,7 @@ public class DiscoSimulado {
         }
         return null;
     }
-    
-    public Bloque buscarBloqueLibreParaPlanificacion(ListaEnlazada<Proceso> colaProcesos) {
+public Bloque buscarBloqueLibreParaPlanificacion(ListaEnlazada<Proceso> colaProcesos) {
         for (Bloque bloque : bloques) {
             if (!bloque.estaOcupado) {
                 boolean reservado = false;
@@ -53,7 +52,6 @@ public class DiscoSimulado {
         }
         return null; 
     }
-
     public void ocuparBloque(int id) {
         if (!bloques[id].estaOcupado) {
             bloques[id].estaOcupado = true;

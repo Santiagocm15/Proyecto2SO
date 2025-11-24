@@ -18,4 +18,13 @@ public class Bloque {
         this.estaOcupado = false; // Nace libre
         this.idSiguienteBloque = -1; // No apunta a ningún lado inicialmente
     }
+    
+    public int getIdSiguienteBloque() {
+    return idSiguienteBloque;
+}
+
+public void setIdSiguienteBloque(int idSiguienteBloque) {
+    this.idSiguienteBloque = idSiguienteBloque;
+}
+
 }

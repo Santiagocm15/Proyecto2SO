@@ -14,7 +14,7 @@ import java.util.Date;
 public abstract class EntradaSistemaArchivos {
     protected String nombre;
     protected Date fechaCreacion; 
-    protected Directorio padre;
+    protected transient Directorio padre;
 
     public EntradaSistemaArchivos(String nombre, Directorio padre) {
         this.nombre = nombre;
