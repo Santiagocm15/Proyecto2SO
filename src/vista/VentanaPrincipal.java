@@ -34,7 +34,7 @@ import modelo.GestorPersistencia;
 
 public class VentanaPrincipal extends javax.swing.JFrame {
 
-    private final SistemaDeArchivos sistema; 
+    private SistemaDeArchivos sistema; 
     private final GestorDeProcesos gestorProcesos;
     private final Timer planificadorTimer;
 
