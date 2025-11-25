@@ -43,23 +43,29 @@ public class SistemaDeArchivos {
             return false;
         }
 
+        String nombreLimpio = nuevoNombre.trim();
+
+        if (entradaARenombrar.getNombre().equals(nombreLimpio)) {
+            System.out.println("El nuevo nombre es igual al actual. No se requiere acción.");
+            return true; 
+        }
         Directorio padre = entradaARenombrar.getPadre();
-        
         if (padre == null) {
             System.err.println("Error: No se puede renombrar el directorio raíz.");
             return false;
         }
 
-        if (buscarEntradaPorNombre(nuevoNombre, padre) != null) {
-            System.err.println("Error: Ya existe un archivo o directorio con el nombre '" + nuevoNombre + "'.");
+        if (buscarEntradaPorNombre(nombreLimpio, padre) != null) {
+            System.err.println("Error: Ya existe un archivo o directorio con el nombre '" + nombreLimpio + "'.");
             return false;
         }
 
-        entradaARenombrar.setNombre(nuevoNombre.trim());
-        System.out.println("La entrada '" + entradaARenombrar.getNombre() + "' ha sido renombrada a '" + nuevoNombre + "'.");
+        String nombreAnterior = entradaARenombrar.getNombre();
+        entradaARenombrar.setNombre(nombreLimpio);
+
+        System.out.println("La entrada '" + nombreAnterior + "' ha sido renombrada a '" + nombreLimpio + "'.");
         return true;
     }
-
     public boolean crearArchivo(String nombre, int tamanoEnBloques, Directorio directorioPadre) {
         if (buscarEntradaPorNombre(nombre, directorioPadre) != null) {
             System.err.println("Error: Ya existe un archivo o directorio con el nombre '" + nombre + "'.");

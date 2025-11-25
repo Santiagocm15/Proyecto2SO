@@ -26,6 +26,9 @@ public class PoliticaSSTF implements PoliticaPlanificacion {
 
         for (int i = 0; i < cola.getTamano(); i++) {
             Proceso procesoActual = cola.get(i);
+            if (procesoActual.getEstado() == EstadoProceso.BLOQUEADO) {
+                continue; 
+            }
             int distancia = Math.abs(procesoActual.getBloqueObjetivo() - cabezalActual);
 
             if (distancia < distanciaMinima) {

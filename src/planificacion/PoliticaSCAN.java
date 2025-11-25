@@ -25,8 +25,11 @@ public class PoliticaSCAN implements PoliticaPlanificacion {
 
         for (int i = 0; i < cola.getTamano(); i++) {
             Proceso p = cola.get(i);
+            if (p.getEstado() == EstadoProceso.BLOQUEADO) {
+                continue;
+            }
             int bloqueObjetivo = p.getBloqueObjetivo();
-
+            
             if (direccion == DireccionSCAN.HACIA_ARRIBA && bloqueObjetivo >= cabezal) {
                 int distancia = bloqueObjetivo - cabezal;
                 if (distancia < distanciaMinima) {

@@ -8,39 +8,54 @@ package planificacion;
  *
  * @author santi
  */
-
+import modelo.EntradaSistemaArchivos;
 import modelo.Directorio;
 
 public class SolicitudES {
-    private final TipoSolicitud tipo;
-    private final String nombre;
-    private final Directorio directorioPadre;
-    private final int tamanoEnBloques; 
+    private TipoSolicitud tipo;
+    private String nombre;
+    private Directorio directorioPadre;
+    private int tamanoEnBloques;
+    
+    // Campos para Eliminar/Renombrar
+    private EntradaSistemaArchivos entradaObjetivo;
+    private String nuevoNombre;
 
-    public SolicitudES(TipoSolicitud tipo, String nombre, Directorio directorioPadre, int tamanoEnBloques) {
+    // --- CONSTRUCTOR 1: Para CREAR DIRECTORIO (Tipo, Nombre, Padre) ---
+    public SolicitudES(TipoSolicitud tipo, String nombre, Directorio directorioPadre) {
         this.tipo = tipo;
         this.nombre = nombre;
         this.directorioPadre = directorioPadre;
+        this.tamanoEnBloques = 0; // Los directorios no suelen pedir tamaño inicial en esta simulación
+    }
+
+    // --- CONSTRUCTOR 2: Para CREAR ARCHIVO (Tipo, Nombre, Tamaño, Padre) ---
+    public SolicitudES(TipoSolicitud tipo, String nombre, int tamanoEnBloques, Directorio directorioPadre) {
+        this.tipo = tipo;
+        this.nombre = nombre;
         this.tamanoEnBloques = tamanoEnBloques;
+        this.directorioPadre = directorioPadre;
     }
 
-    public SolicitudES(TipoSolicitud tipo, String nombre, Directorio directorioPadre) {
-        this(tipo, nombre, directorioPadre, 0);
+    // --- CONSTRUCTOR 3: Para ELIMINAR (Tipo, Objeto a eliminar) ---
+    public SolicitudES(TipoSolicitud tipo, EntradaSistemaArchivos entradaObjetivo) {
+        this.tipo = tipo;
+        this.entradaObjetivo = entradaObjetivo;
     }
 
-    public TipoSolicitud getTipo() {
-        return tipo;
+    // --- CONSTRUCTOR 4: Para RENOMBRAR (Tipo, Objeto, Nuevo Nombre) ---
+    public SolicitudES(TipoSolicitud tipo, EntradaSistemaArchivos entradaObjetivo, String nuevoNombre) {
+        this.tipo = tipo;
+        this.entradaObjetivo = entradaObjetivo;
+        this.nuevoNombre = nuevoNombre;
     }
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    public Directorio getDirectorioPadre() {
-        return directorioPadre;
-    }
-
-    public int getTamanoEnBloques() {
-        return tamanoEnBloques;
-    }
+    // --- GETTERS ---
+    public TipoSolicitud getTipo() { return tipo; }
+    public String getNombre() { return nombre; }
+    public Directorio getDirectorioPadre() { return directorioPadre; }
+    public int getTamanoEnBloques() { return tamanoEnBloques; }
+    public EntradaSistemaArchivos getEntradaObjetivo() { return entradaObjetivo; }
+    public String getNuevoNombre() { return nuevoNombre; }
+    
 }

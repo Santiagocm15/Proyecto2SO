@@ -11,5 +11,6 @@ package planificacion;
 public enum TipoSolicitud {
     CREAR_ARCHIVO,
     CREAR_DIRECTORIO,
-    ELIMINAR
+    ELIMINAR,
+    RENOMBRAR
 }

@@ -35,8 +35,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.SwingUtilities;
+
 
 public class VentanaPrincipal extends javax.swing.JFrame {
 
@@ -65,11 +65,12 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     this.gestorProcesos = new GestorDeProcesos(this.sistema);
 
     // 3️⃣ Configurar Timer para la planificación de procesos automática
-    this.planificadorTimer = new Timer(2000, e -> {
-        if (gestorProcesos != null) {
-            gestorProcesos.procesarSiguienteSolicitud();
+    this.planificadorTimer = new Timer(2000, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // Ejecutamos el nuevo flujo paso a paso
+            ejecutarUnCicloDePlanificacion();
         }
-        actualizarTodasLasVistas(); // actualizar UI después de cada ciclo
     });
     planificadorTimer.start();
 
@@ -138,6 +139,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jPopupMenu1 = new javax.swing.JPopupMenu();
         menuContextualArbol = new javax.swing.JPopupMenu();
         menuItemRenombrar = new javax.swing.JMenuItem();
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jSplitPane1 = new javax.swing.JSplitPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         arbolArchivos = new javax.swing.JTree();
@@ -153,6 +155,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         panelDisco = new vista.PanelDiscoVisual();
         jLabel1 = new javax.swing.JLabel();
         selectorPolitica = new javax.swing.JComboBox<>();
+        jLabel2 = new javax.swing.JLabel();
+        radioModoAutomatico = new javax.swing.JRadioButton();
+        radioModoManual = new javax.swing.JRadioButton();
+        botonProcesarSiguiente = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         menuSistema = new javax.swing.JMenu();
         menuNuevoSistema = new javax.swing.JMenuItem();
@@ -272,6 +278,33 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             }
         });
 
+        jLabel2.setText("Modo de Ejecución:");
+
+        buttonGroup1.add(radioModoAutomatico);
+        radioModoAutomatico.setSelected(true);
+        radioModoAutomatico.setText("Automático");
+        radioModoAutomatico.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioModoAutomaticoActionPerformed(evt);
+            }
+        });
+
+        buttonGroup1.add(radioModoManual);
+        radioModoManual.setText("Manual");
+        radioModoManual.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioModoManualActionPerformed(evt);
+            }
+        });
+
+        botonProcesarSiguiente.setText("Procesar Siguiente");
+        botonProcesarSiguiente.setEnabled(false);
+        botonProcesarSiguiente.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                botonProcesarSiguienteActionPerformed(evt);
+            }
+        });
+
         menuSistema.setText("Sistema");
 
         menuNuevoSistema.setText("Nuevo");
@@ -356,10 +389,18 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jSplitPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 629, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(selectorPolitica, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 12, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(selectorPolitica, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel2)
+                    .addComponent(radioModoAutomatico)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(radioModoManual)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(botonProcesarSiguiente)))
+                .addGap(0, 73, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -369,6 +410,14 @@ public class VentanaPrincipal extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(selectorPolitica, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioModoAutomatico)
+                .addGap(7, 7, 7)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(radioModoManual)
+                    .addComponent(botonProcesarSiguiente))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -393,17 +442,13 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     String nombre = JOptionPane.showInputDialog(this, "Ingrese el nombre del nuevo directorio:", "Crear Directorio", JOptionPane.PLAIN_MESSAGE);
     
     if (nombre != null && !nombre.trim().isEmpty()) {
-        if (sistema.crearDirectorio(nombre.trim(), dirPadre)) {
-            // Registrar en el gestor de procesos si existe
-            if (gestorProcesos != null) {
-                SolicitudES solicitud = new SolicitudES(TipoSolicitud.CREAR_DIRECTORIO, nombre.trim(), dirPadre);
-                gestorProcesos.registrarNuevaSolicitud(solicitud);
-            }
-            actualizarTodasLasVistas(); // mantener tu actualización de vistas
+        SolicitudES solicitud = new SolicitudES(TipoSolicitud.CREAR_DIRECTORIO, nombre.trim(), dirPadre);
+        gestorProcesos.registrarNuevaSolicitud(solicitud);
+        actualizarTablaProcesos();
+        actualizarTodasLasVistas(); 
         } else {
             JOptionPane.showMessageDialog(this, "No se pudo crear el directorio (quizás el nombre ya existe).", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }                                               
+        }                                          
     }//GEN-LAST:event_menuCrearDirectorioActionPerformed
 
     private void menuCrearArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCrearArchivoActionPerformed
@@ -430,8 +475,9 @@ public class VentanaPrincipal extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "El tamaño debe ser un número positivo.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            SolicitudES solicitud = new SolicitudES(TipoSolicitud.CREAR_ARCHIVO, nombre.trim(), dirPadre, tamano);
+            SolicitudES solicitud = new SolicitudES(TipoSolicitud.CREAR_ARCHIVO, nombre.trim(), tamano, dirPadre);
             gestorProcesos.registrarNuevaSolicitud(solicitud);
+            actualizarTablaProcesos();
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "El tamaño debe ser un número válido.", "Dato inválido", JOptionPane.ERROR_MESSAGE);
         }
@@ -449,25 +495,42 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     
     private void actualizarTablaProcesos() {
         DefaultTableModel modeloTabla = (DefaultTableModel) tablaProcesos.getModel();
-        modeloTabla.setRowCount(0);
-        ListaEnlazada<Proceso> cola = gestorProcesos.getColaDeES();
-        for (int i = 0; i < cola.getTamano(); i++) {
-            Proceso proceso = cola.get(i);
-            if (proceso == null) continue; 
-            SolicitudES solicitud = proceso.getSolicitud();
-            String detalles = solicitud.getNombre();
-                        if (solicitud.getTipo() == TipoSolicitud.CREAR_ARCHIVO) {
-                detalles += " (" + solicitud.getTamanoEnBloques() + " bloques)";
-            }
+    modeloTabla.setRowCount(0);
 
-            Object[] fila = new Object[]{
-                proceso.getId(),
-                solicitud.getTipo(),
-                proceso.getEstado(),
-                detalles
-            };
-            modeloTabla.addRow(fila);
+    ListaEnlazada<Proceso> cola = gestorProcesos.getColaDeES();
+
+    for (int i = 0; i < cola.getTamano(); i++) {
+        Proceso proceso = cola.get(i);
+        if (proceso == null) continue;
+        SolicitudES solicitud = proceso.getSolicitud();
+        String detalles = ""; 
+        switch (solicitud.getTipo()) {
+            case CREAR_ARCHIVO:
+                detalles = solicitud.getNombre() + " (" + solicitud.getTamanoEnBloques() + " bloques)";
+                break;
+            case CREAR_DIRECTORIO:
+                detalles = solicitud.getNombre();
+                break;
+            case ELIMINAR:
+                if (solicitud.getEntradaObjetivo() != null) {
+                    detalles = "Eliminar '" + solicitud.getEntradaObjetivo().getNombre() + "'";
+                }
+                break;
+            case RENOMBRAR:
+                if (solicitud.getEntradaObjetivo() != null && solicitud.getNuevoNombre() != null) {
+                    detalles = "Renombrar '" + solicitud.getEntradaObjetivo().getNombre() + "' a '" + solicitud.getNuevoNombre() + "'";
+                }
+                break;
         }
+
+        Object[] fila = new Object[]{
+            proceso.getId(),
+            solicitud.getTipo(),
+            proceso.getEstado(),
+            detalles 
+        };
+        modeloTabla.addRow(fila);
+    }
     }
     
     private void menuEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEliminarActionPerformed
@@ -494,19 +557,9 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         if (confirmacion != JOptionPane.YES_OPTION) {
             return;
         }
-
-        boolean exito;
-        if (entradaAEliminar instanceof Archivo) {
-            exito = sistema.eliminarArchivo(entradaAEliminar.getNombre(), entradaAEliminar.getPadre());
-        } else {
-            exito = sistema.eliminarDirectorio(entradaAEliminar.getNombre(), entradaAEliminar.getPadre());
-        }
-
-        if (exito) {
-            actualizarTodasLasVistas();
-        } else {
-            JOptionPane.showMessageDialog(this, "Ocurrió un error inesperado al eliminar la selección.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        SolicitudES solicitud = new SolicitudES(TipoSolicitud.ELIMINAR, entradaAEliminar);
+        gestorProcesos.registrarNuevaSolicitud(solicitud);
+        actualizarTablaProcesos();
     }//GEN-LAST:event_menuEliminarActionPerformed
 
     private void menuCambiarModoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCambiarModoActionPerformed
@@ -608,10 +661,8 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         if (rutaSeleccionada == null) {
             return; 
         }
-
         DefaultMutableTreeNode nodoSeleccionado = (DefaultMutableTreeNode) rutaSeleccionada.getLastPathComponent();
         EntradaSistemaArchivos entradaARenombrar = (EntradaSistemaArchivos) nodoSeleccionado.getUserObject();
-
         if (entradaARenombrar.getPadre() == null) {
             JOptionPane.showMessageDialog(this, "No se puede renombrar el directorio raíz.", "Operación no permitida", JOptionPane.ERROR_MESSAGE);
             return;
@@ -620,13 +671,25 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         String nuevoNombre = JOptionPane.showInputDialog(this, "Ingrese el nuevo nombre:", "Renombrar", JOptionPane.PLAIN_MESSAGE, null, null, entradaARenombrar.getNombre()).toString();
 
         if (nuevoNombre != null && !nuevoNombre.trim().isEmpty()) {
-            if (sistema.renombrarEntrada(entradaARenombrar, nuevoNombre)) {
-                actualizarTodasLasVistas();
-            } else {
-                JOptionPane.showMessageDialog(this, "No se pudo renombrar (quizás el nombre ya existe).", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
+            SolicitudES solicitud = new SolicitudES(TipoSolicitud.RENOMBRAR, entradaARenombrar, nuevoNombre);
+            gestorProcesos.registrarNuevaSolicitud(solicitud);
+            actualizarTablaProcesos();
+        }        
     }//GEN-LAST:event_menuItemRenombrarActionPerformed
+
+    private void radioModoAutomaticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioModoAutomaticoActionPerformed
+        planificadorTimer.start();
+        botonProcesarSiguiente.setEnabled(false);
+    }//GEN-LAST:event_radioModoAutomaticoActionPerformed
+
+    private void radioModoManualActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioModoManualActionPerformed
+        planificadorTimer.stop();
+        botonProcesarSiguiente.setEnabled(true);
+    }//GEN-LAST:event_radioModoManualActionPerformed
+
+    private void botonProcesarSiguienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonProcesarSiguienteActionPerformed
+        ejecutarUnCicloDePlanificacion();
+    }//GEN-LAST:event_botonProcesarSiguienteActionPerformed
 
         private Directorio obtenerDirectorioSeleccionado() {
         DefaultMutableTreeNode nodoSeleccionado = (DefaultMutableTreeNode) arbolArchivos.getLastSelectedPathComponent();
@@ -674,6 +737,23 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         actualizarTablaProcesos();
     }
     
+    private void ejecutarUnCicloDePlanificacion() {
+        gestorProcesos.prepararSiguienteProceso();
+        SwingUtilities.invokeLater(() -> {
+            actualizarTablaProcesos(); 
+        });
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {}
+
+            gestorProcesos.ejecutarProcesoActual();
+
+            SwingUtilities.invokeLater(() -> {
+                actualizarTodasLasVistas();
+            });
+        }).start();
+    }
 
     private DefaultMutableTreeNode buscarNodoEnArbol(DefaultMutableTreeNode nodoActual, TreePath rutaAntigua) {
         Object objetoBuscado = ((DefaultMutableTreeNode) rutaAntigua.getLastPathComponent()).getUserObject();
@@ -745,7 +825,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTree arbolArchivos;
+    private javax.swing.JButton botonProcesarSiguiente;
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
@@ -772,6 +855,8 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private javax.swing.JMenuItem menuNuevoSistema;
     private javax.swing.JMenu menuSistema;
     private vista.PanelDiscoVisual panelDisco;
+    private javax.swing.JRadioButton radioModoAutomatico;
+    private javax.swing.JRadioButton radioModoManual;
     private javax.swing.JComboBox<String> selectorPolitica;
     private javax.swing.JTable tablaArchivos;
     private javax.swing.JTable tablaProcesos;

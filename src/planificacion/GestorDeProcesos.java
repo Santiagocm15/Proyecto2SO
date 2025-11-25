@@ -12,6 +12,9 @@ package planificacion;
 import estructuras.ListaEnlazada;
 import modelo.Bloque;
 import modelo.SistemaDeArchivos;
+import modelo.Archivo;
+import modelo.Directorio; 
+import modelo.EntradaSistemaArchivos; 
 
 public class GestorDeProcesos {
 
@@ -20,6 +23,7 @@ public class GestorDeProcesos {
     private PoliticaPlanificacion politicaActual;
     private int cabezalActual;
     private DireccionSCAN direccion;
+    private Proceso procesoEnEjecucion = null;
             
     public GestorDeProcesos(SistemaDeArchivos sistemaDeArchivos) {
         this.colaDeES = new ListaEnlazada<>();
@@ -48,65 +52,120 @@ public class GestorDeProcesos {
         
     public void registrarNuevaSolicitud(SolicitudES solicitud) {
         Proceso nuevoProceso = new Proceso(solicitud);
-
         int bloqueDestino = -1;
-        if (solicitud.getTipo() == TipoSolicitud.CREAR_ARCHIVO || solicitud.getTipo() == TipoSolicitud.CREAR_DIRECTORIO) {
-            Bloque bloqueLibre = sistemaDeArchivos.getDisco().buscarBloqueLibreParaPlanificacion(colaDeES);
 
-            if (bloqueLibre != null) {
-                bloqueDestino = bloqueLibre.id;
-            }
+        switch (solicitud.getTipo()) {
+            case CREAR_ARCHIVO:
+            case CREAR_DIRECTORIO:
+                Bloque bloqueLibre = sistemaDeArchivos.getDisco().buscarBloqueLibreParaPlanificacion(colaDeES);
+                if (bloqueLibre != null) {
+                    bloqueDestino = bloqueLibre.id;
+                }
+                break;
+
+            case ELIMINAR:
+            case RENOMBRAR:
+                EntradaSistemaArchivos entrada = solicitud.getEntradaObjetivo();
+
+                if (entrada != null) {
+                    if (entrada instanceof Archivo) {
+                        bloqueDestino = ((Archivo) entrada).getIdBloqueInicial();
+                    } else {
+                        bloqueDestino = 0; 
+                    }
+                }
+                break;
         }
-        // (En el futuro, para leer/eliminar, el bloque objetivo sería el bloque inicial del archivo existente)
 
         nuevoProceso.setBloqueObjetivo(bloqueDestino);
         nuevoProceso.setEstado(EstadoProceso.LISTO);
         colaDeES.agregarAlFinal(nuevoProceso);
 
-        System.out.println("Nuevo proceso #" + nuevoProceso.getId() + " encolado. Objetivo: Bloque " + bloqueDestino);
-    }
-    
-    public void procesarSiguienteSolicitud() {
-        if (colaDeES.estaVacia()) {
+        System.out.println("Nuevo proceso #" + nuevoProceso.getId() + " encolado. Tipo: " + solicitud.getTipo() + ". Objetivo: Bloque " + bloqueDestino);
+    }    
+    public void prepararSiguienteProceso() {
+        if (procesoEnEjecucion != null || colaDeES.estaVacia()) {
+            return; 
+        }
+
+        for (int i = 0; i < colaDeES.getTamano(); i++) {
+            Proceso p = colaDeES.get(i);
+            if (p != null && p.getEstado() == EstadoProceso.BLOQUEADO) {
+                int bloquesNecesarios = p.getSolicitud().getTamanoEnBloques();
+                int bloquesLibres = sistemaDeArchivos.getDisco().getBloquesLibres();
+
+                if (bloquesLibres >= bloquesNecesarios) {
+                    p.setEstado(EstadoProceso.LISTO);
+                    System.out.println("Proceso #" + p.getId() + " DESBLOQUEADO. Ahora está LISTO.");
+                }
+            }
+        }
+        Proceso procesoSeleccionado = politicaActual.seleccionarSiguienteProceso(colaDeES, this);
+        if (procesoSeleccionado == null) {
+            return; 
+        }
+        if (procesoSeleccionado.getSolicitud().getTipo() == TipoSolicitud.CREAR_ARCHIVO) {
+            int bloquesNecesarios = procesoSeleccionado.getSolicitud().getTamanoEnBloques();
+            int bloquesLibres = sistemaDeArchivos.getDisco().getBloquesLibres();
+
+            if (bloquesLibres < bloquesNecesarios) {
+                procesoSeleccionado.setEstado(EstadoProceso.BLOQUEADO);
+                System.err.println("Proceso #" + procesoSeleccionado.getId() + " BLOQUEADO por falta de espacio.");
+                return; 
+            }
+        }
+
+        procesoSeleccionado.setEstado(EstadoProceso.EJECUTANDO);
+        this.procesoEnEjecucion = procesoSeleccionado;
+    }    
+    public void ejecutarProcesoActual() {
+        if (this.procesoEnEjecucion == null) {
             return;
         }
-        Proceso procesoActual = politicaActual.seleccionarSiguienteProceso(colaDeES, this);
-        if (procesoActual == null) return; 
-        procesoActual.setEstado(EstadoProceso.EJECUTANDO);
-        SolicitudES solicitud = procesoActual.getSolicitud();
+
+        SolicitudES solicitud = this.procesoEnEjecucion.getSolicitud();
         boolean exito = false;
-        int bloqueDestino = -1; 
+
         switch (solicitud.getTipo()) {
             case CREAR_ARCHIVO:
-                Bloque primerBloque = sistemaDeArchivos.getDisco().buscarBloqueLibre();
-                if (primerBloque != null) {
-                    bloqueDestino = primerBloque.id;
-                }
                 exito = sistemaDeArchivos.crearArchivo(
                         solicitud.getNombre(), 
                         solicitud.getTamanoEnBloques(), 
-                        solicitud.getDirectorioPadre()); 
+                        solicitud.getDirectorioPadre());
                 break;
-            case CREAR_DIRECTORIO:
-                Bloque primerBloqueDir = sistemaDeArchivos.getDisco().buscarBloqueLibre();
-                if (primerBloqueDir != null) {
-                    bloqueDestino = primerBloqueDir.id; 
-                }
-                exito = sistemaDeArchivos.crearDirectorio(
-                    solicitud.getNombre(),
-                    solicitud.getDirectorioPadre()
-                );
-                break;        }
 
-        if (exito && bloqueDestino != -1) {
-            this.cabezalActual = bloqueDestino;
+            case CREAR_DIRECTORIO:
+                exito = sistemaDeArchivos.crearDirectorio(
+                        solicitud.getNombre(), 
+                        solicitud.getDirectorioPadre());
+                break;
+
+            case ELIMINAR:
+                EntradaSistemaArchivos entradaAEliminar = solicitud.getEntradaObjetivo();
+                if (entradaAEliminar instanceof Archivo) {
+                    exito = sistemaDeArchivos.eliminarArchivo(entradaAEliminar.getNombre(), entradaAEliminar.getPadre());
+                } else if (entradaAEliminar instanceof Directorio) {
+                    exito = sistemaDeArchivos.eliminarDirectorio(entradaAEliminar.getNombre(), entradaAEliminar.getPadre());
+                }
+                break;
+
+            case RENOMBRAR:
+                exito = sistemaDeArchivos.renombrarEntrada(solicitud.getEntradaObjetivo(), solicitud.getNuevoNombre());
+                break;
         }
-        
-        procesoActual.setEstado(EstadoProceso.TERMINADO);
-        System.out.println("Proceso #" + procesoActual.getId() + " terminado. Nuevo cabezal en: " + this.cabezalActual);
-        colaDeES.remover(procesoActual);
+
+        // Actualizamos cabezal si hubo éxito y había un destino válido
+        if (exito && this.procesoEnEjecucion.getBloqueObjetivo() != -1) {
+            this.cabezalActual = this.procesoEnEjecucion.getBloqueObjetivo();
+        }
+
+        // Finalizamos el proceso
+        this.procesoEnEjecucion.setEstado(EstadoProceso.TERMINADO);
+        System.out.println("Proceso #" + this.procesoEnEjecucion.getId() + " terminado. Nuevo cabezal: " + this.cabezalActual);
+
+        colaDeES.remover(this.procesoEnEjecucion);
+        this.procesoEnEjecucion = null;
     }
-    
     public ListaEnlazada<Proceso> getColaDeES() {
         return colaDeES;
     }

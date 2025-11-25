@@ -27,6 +27,9 @@ public class PoliticaCSCAN implements PoliticaPlanificacion {
 
         for (int i = 0; i < cola.getTamano(); i++) {
             Proceso p = cola.get(i);
+            if (p.getEstado() == EstadoProceso.BLOQUEADO) {
+                continue;
+            }
             int bloqueObjetivo = p.getBloqueObjetivo();
             
             if (bloqueObjetivo >= cabezal) {
