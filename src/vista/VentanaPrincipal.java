@@ -31,6 +31,12 @@ import javax.swing.tree.TreePath;
 import modelo.SistemaDeArchivos;
 import javax.swing.table.DefaultTableModel;
 import modelo.GestorPersistencia;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 public class VentanaPrincipal extends javax.swing.JFrame {
 
@@ -130,6 +136,8 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private void initComponents() {
 
         jPopupMenu1 = new javax.swing.JPopupMenu();
+        menuContextualArbol = new javax.swing.JPopupMenu();
+        menuItemRenombrar = new javax.swing.JMenuItem();
         jSplitPane1 = new javax.swing.JSplitPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         arbolArchivos = new javax.swing.JTree();
@@ -159,8 +167,17 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jMenu4 = new javax.swing.JMenu();
         menuCPU = new javax.swing.JMenuItem();
 
+        menuItemRenombrar.setText("Renombrar...");
+        menuItemRenombrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuItemRenombrarActionPerformed(evt);
+            }
+        });
+        menuContextualArbol.add(menuItemRenombrar);
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        arbolArchivos.setComponentPopupMenu(menuContextualArbol);
         jScrollPane1.setViewportView(arbolArchivos);
 
         jSplitPane1.setLeftComponent(jScrollPane1);
@@ -586,6 +603,31 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }
     }//GEN-LAST:event_menuCargarSistemaActionPerformed
 
+    private void menuItemRenombrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemRenombrarActionPerformed
+        TreePath rutaSeleccionada = arbolArchivos.getSelectionPath();
+        if (rutaSeleccionada == null) {
+            return; 
+        }
+
+        DefaultMutableTreeNode nodoSeleccionado = (DefaultMutableTreeNode) rutaSeleccionada.getLastPathComponent();
+        EntradaSistemaArchivos entradaARenombrar = (EntradaSistemaArchivos) nodoSeleccionado.getUserObject();
+
+        if (entradaARenombrar.getPadre() == null) {
+            JOptionPane.showMessageDialog(this, "No se puede renombrar el directorio raíz.", "Operación no permitida", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String nuevoNombre = JOptionPane.showInputDialog(this, "Ingrese el nuevo nombre:", "Renombrar", JOptionPane.PLAIN_MESSAGE, null, null, entradaARenombrar.getNombre()).toString();
+
+        if (nuevoNombre != null && !nuevoNombre.trim().isEmpty()) {
+            if (sistema.renombrarEntrada(entradaARenombrar, nuevoNombre)) {
+                actualizarTodasLasVistas();
+            } else {
+                JOptionPane.showMessageDialog(this, "No se pudo renombrar (quizás el nombre ya existe).", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_menuItemRenombrarActionPerformed
+
         private Directorio obtenerDirectorioSeleccionado() {
         DefaultMutableTreeNode nodoSeleccionado = (DefaultMutableTreeNode) arbolArchivos.getLastSelectedPathComponent();
 
@@ -606,10 +648,46 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }
        
     private void actualizarTodasLasVistas() {
-        actualizarArbolDeArchivos();
+        TreePath rutaSeleccionada = arbolArchivos.getSelectionPath();
+        List<TreePath> listaDeRutasExpandidas = new ArrayList<>();
+        Enumeration<TreePath> rutasExpandidasEnum = arbolArchivos.getExpandedDescendants(new TreePath(arbolArchivos.getModel().getRoot()));
+        if (rutasExpandidasEnum != null) {
+            listaDeRutasExpandidas = Collections.list(rutasExpandidasEnum);
+        }
+        actualizarArbolDeArchivos(); 
+        for (TreePath rutaAntigua : listaDeRutasExpandidas) {
+            DefaultMutableTreeNode nodoARestaurar = buscarNodoEnArbol((DefaultMutableTreeNode) arbolArchivos.getModel().getRoot(), rutaAntigua);
+            if (nodoARestaurar != null) {
+                arbolArchivos.expandPath(new TreePath(nodoARestaurar.getPath()));
+            }
+        }
+                if (rutaSeleccionada != null) {
+            DefaultMutableTreeNode nodoARestaurar = buscarNodoEnArbol((DefaultMutableTreeNode) arbolArchivos.getModel().getRoot(), rutaSeleccionada);
+            if (nodoARestaurar != null) {
+                TreePath nuevaRuta = new TreePath(nodoARestaurar.getPath());
+                arbolArchivos.setSelectionPath(nuevaRuta);
+                arbolArchivos.scrollPathToVisible(nuevaRuta);
+            }
+        }
         panelDisco.actualizarVista(sistema.getDisco());
         actualizarTablaDeArchivos();
         actualizarTablaProcesos();
+    }
+    
+
+    private DefaultMutableTreeNode buscarNodoEnArbol(DefaultMutableTreeNode nodoActual, TreePath rutaAntigua) {
+        Object objetoBuscado = ((DefaultMutableTreeNode) rutaAntigua.getLastPathComponent()).getUserObject();
+        if (nodoActual.getUserObject().equals(objetoBuscado)) {
+            return nodoActual;
+        }
+        for (int i = 0; i < nodoActual.getChildCount(); i++) {
+            DefaultMutableTreeNode resultado = buscarNodoEnArbol((DefaultMutableTreeNode) nodoActual.getChildAt(i), rutaAntigua);
+            if (resultado != null) {
+                return resultado;
+            }
+        }
+
+        return null; 
     }
     
     private void actualizarTablaDeArchivos() {
@@ -685,10 +763,12 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private javax.swing.JMenuItem menuCPU;
     private javax.swing.JMenuItem menuCambiarModo;
     private javax.swing.JMenuItem menuCargarSistema;
+    private javax.swing.JPopupMenu menuContextualArbol;
     private javax.swing.JMenuItem menuCrearArchivo;
     private javax.swing.JMenuItem menuCrearDirectorio;
     private javax.swing.JMenuItem menuEliminar;
     private javax.swing.JMenuItem menuGuardarSistema;
+    private javax.swing.JMenuItem menuItemRenombrar;
     private javax.swing.JMenuItem menuNuevoSistema;
     private javax.swing.JMenu menuSistema;
     private vista.PanelDiscoVisual panelDisco;

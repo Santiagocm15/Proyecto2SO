@@ -21,9 +21,11 @@ public class SistemaDeArchivos {
     public Directorio getDirectorioRaiz() {
         return directorioRaiz;
     }
-public void setDirectorioRaiz(Directorio nuevaRaiz) {
-    this.directorioRaiz = nuevaRaiz;
-}
+    
+    public void setDirectorioRaiz(Directorio nuevaRaiz) {
+        this.directorioRaiz = nuevaRaiz;
+    }
+    
     public boolean crearDirectorio(String nombre, Directorio directorioPadre) {
         if (buscarEntradaPorNombre(nombre, directorioPadre) != null) {
             System.err.println("Error: Ya existe un archivo o directorio con el nombre '" + nombre + "'.");
@@ -32,6 +34,29 @@ public void setDirectorioRaiz(Directorio nuevaRaiz) {
         Directorio nuevoDirectorio = new Directorio(nombre, directorioPadre);
         directorioPadre.agregarEntrada(nuevoDirectorio);
         System.out.println("Directorio '" + nombre + "' creado con éxito.");
+        return true;
+    }
+    
+    public boolean renombrarEntrada(EntradaSistemaArchivos entradaARenombrar, String nuevoNombre) {
+        if (entradaARenombrar == null || nuevoNombre == null || nuevoNombre.trim().isEmpty()) {
+            System.err.println("Error: Nombre inválido o entrada nula.");
+            return false;
+        }
+
+        Directorio padre = entradaARenombrar.getPadre();
+        
+        if (padre == null) {
+            System.err.println("Error: No se puede renombrar el directorio raíz.");
+            return false;
+        }
+
+        if (buscarEntradaPorNombre(nuevoNombre, padre) != null) {
+            System.err.println("Error: Ya existe un archivo o directorio con el nombre '" + nuevoNombre + "'.");
+            return false;
+        }
+
+        entradaARenombrar.setNombre(nuevoNombre.trim());
+        System.out.println("La entrada '" + entradaARenombrar.getNombre() + "' ha sido renombrada a '" + nuevoNombre + "'.");
         return true;
     }
 
