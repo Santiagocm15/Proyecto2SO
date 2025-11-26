@@ -17,19 +17,19 @@ public class SolicitudES {
     private Directorio directorioPadre;
     private int tamanoEnBloques;
     
-    // Campos para Eliminar/Renombrar
+    
     private EntradaSistemaArchivos entradaObjetivo;
     private String nuevoNombre;
 
-    // --- CONSTRUCTOR 1: Para CREAR DIRECTORIO (Tipo, Nombre, Padre) ---
+    // CONSTRUCTOR 1 Para CREAR DIRECTORIO 
     public SolicitudES(TipoSolicitud tipo, String nombre, Directorio directorioPadre) {
         this.tipo = tipo;
         this.nombre = nombre;
         this.directorioPadre = directorioPadre;
-        this.tamanoEnBloques = 0; // Los directorios no suelen pedir tamaño inicial en esta simulación
+        this.tamanoEnBloques = 0; // Los directorios no suelen pedir tamaño inicial 
     }
 
-    // --- CONSTRUCTOR 2: Para CREAR ARCHIVO (Tipo, Nombre, Tamaño, Padre) ---
+    // CONSTRUCTOR 2 Para CREAR ARCHIVO 
     public SolicitudES(TipoSolicitud tipo, String nombre, int tamanoEnBloques, Directorio directorioPadre) {
         this.tipo = tipo;
         this.nombre = nombre;
@@ -37,20 +37,20 @@ public class SolicitudES {
         this.directorioPadre = directorioPadre;
     }
 
-    // --- CONSTRUCTOR 3: Para ELIMINAR (Tipo, Objeto a eliminar) ---
+    // Para ELIMINAR 
     public SolicitudES(TipoSolicitud tipo, EntradaSistemaArchivos entradaObjetivo) {
         this.tipo = tipo;
         this.entradaObjetivo = entradaObjetivo;
     }
 
-    // --- CONSTRUCTOR 4: Para RENOMBRAR (Tipo, Objeto, Nuevo Nombre) ---
+    // CONSTRUCTOR 4 Para RENOMBRAR 
     public SolicitudES(TipoSolicitud tipo, EntradaSistemaArchivos entradaObjetivo, String nuevoNombre) {
         this.tipo = tipo;
         this.entradaObjetivo = entradaObjetivo;
         this.nuevoNombre = nuevoNombre;
     }
 
-    // --- GETTERS ---
+    
     public TipoSolicitud getTipo() { return tipo; }
     public String getNombre() { return nombre; }
     public Directorio getDirectorioPadre() { return directorioPadre; }

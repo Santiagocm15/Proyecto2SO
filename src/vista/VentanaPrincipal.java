@@ -58,13 +58,13 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     public VentanaPrincipal() {
     initComponents();
 
-    // 1️⃣ Inicializar tu SistemaDeArchivos (compatible con tu persistencia)
+    
     this.sistema = new SistemaDeArchivos(100);
 
-    // 2️⃣ Inicializar el gestor de procesos del otro proyecto
+    
     this.gestorProcesos = new GestorDeProcesos(this.sistema);
 
-    // 3️⃣ Configurar Timer para la planificación de procesos automática
+    
     this.planificadorTimer = new Timer(2000, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -74,10 +74,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     });
     planificadorTimer.start();
 
-    // 4️⃣ Actualizar todas las vistas al inicio
+    
     actualizarTodasLasVistas();
 
-    // 5️⃣ Configurar menú de cambio de modo
+    
     menuCambiarModo.setText("Modo: Administrador");
     menuCambiarModo.addActionListener(evt -> cambiarModo());
 }
@@ -490,7 +490,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     menuCrearDirectorio.setEnabled(admin);
     menuEliminar.setEnabled(admin);
 
-    // Podrías cambiar colores o iconos del árbol para mostrar solo lectura
+    // Bro, si puedes cambiar los colores por proceso?
 }
     
     private void actualizarTablaProcesos() {
@@ -632,19 +632,19 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     int result = chooser.showOpenDialog(this);
     if (result == JFileChooser.APPROVE_OPTION) {
         try {
-            // 🔹 Cargar sistema completo (raíz + disco), devuelve la nueva raíz
+            // devuelve la nueva raíz
             Directorio nuevaRaiz = GestorPersistencia.cargarSistema(
                 chooser.getSelectedFile().getAbsolutePath(),
                 sistema.getDisco()  // disco actual donde se reconstruyen los bloques
             );
 
-            // 🔹 Reemplazar la raíz actual por la cargada
+            
             sistema.setDirectorioRaiz(nuevaRaiz);
 
-            // 🔹 RECREAR o RECONFIGURAR gestorProcesos para el sistema recién cargado
+            
             gestorProcesos = new GestorDeProcesos(this.sistema);
 
-            // 🔹 Actualizar vistas (árbol, tabla, disco)
+            // Actualizar vistas 
             actualizarTodasLasVistas();
 
             JOptionPane.showMessageDialog(this, "Sistema cargado correctamente.");

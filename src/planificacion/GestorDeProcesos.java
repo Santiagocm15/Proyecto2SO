@@ -154,7 +154,7 @@ public class GestorDeProcesos {
                 break;
         }
 
-        // Actualizamos cabezal si hubo éxito y había un destino válido
+        // Actualizamos cabezal 
         if (exito && this.procesoEnEjecucion.getBloqueObjetivo() != -1) {
             this.cabezalActual = this.procesoEnEjecucion.getBloqueObjetivo();
         }
